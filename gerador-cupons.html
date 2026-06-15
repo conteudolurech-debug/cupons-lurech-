@@ -274,6 +274,7 @@
     <nav>
       <button class="tab active" data-view="create">Criar Cupom</button>
       <button class="tab" data-view="list">Cupons Gerados <span class="badge" id="countBadge">0</span></button>
+      <button class="tab admin-only" data-view="auth">Autorizações <span class="badge" id="authBadge" style="background:#8B2A2A;">0</span></button>
       <button class="tab admin-only" data-view="users">Usuários <span class="badge" id="userCountBadge">0</span></button>
     </nav>
     <div class="user-chip">
@@ -324,6 +325,14 @@
               <button type="button" class="btn-mini" id="btn-regen">↻</button>
             </div>
           </div>
+          <div class="field">
+            <label>Percentual de desconto <span class="opt">(opcional)</span></label>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <input type="number" id="f-percentual" min="0" max="100" placeholder="Ex: 20" style="width:100px;">
+              <span style="font-size:13px;color:var(--gray);">%</span>
+              <span id="percentual-aviso" style="display:none;font-size:11px;font-weight:600;color:#8C6A2A;background:#FFF4DC;padding:4px 10px;border-radius:8px;">⚠️ Requer aprovação do admin</span>
+            </div>
+          </div>
           <div class="field"><label>Observações <span class="opt">(opcional)</span></label><textarea id="f-obs" placeholder="Notas internas…"></textarea></div>
           <div class="actions">
             <button class="btn btn-ghost" id="btn-clear">Limpar</button>
@@ -358,6 +367,7 @@
                   Mal podemos esperar para recebê-la por aqui! Aproveite!
                 </div>
                 <div class="voucher-code"><span>Cupom: </span><span id="v-codigo">——</span></div>
+                <div class="voucher-solicitante" id="v-solicitante" style="display:none;font-size:12px;color:var(--gray);margin-top:8px;letter-spacing:0.3px;"></div>
               </div>
               <div class="voucher-right"></div>
             </div>
@@ -398,6 +408,14 @@
         <button class="btn btn-ghost" id="btn-export" style="flex:0 0 auto;padding:9px 16px;">↓ Exportar CSV</button>
       </div>
       <div id="list-container"></div>
+    </section>
+
+    <!-- AUTORIZAÇÕES -->
+    <section class="view" id="view-auth">
+      <div class="panel" style="margin-bottom:18px;background:#FFF4DC;border-color:#e5d4a0;">
+        <p style="font-size:13px;color:#8C6A2A;">⚠️ Cupons com <b>50% ou mais</b> de desconto precisam da sua aprovação antes de serem gerados. Revise os detalhes abaixo e aprove ou rejeite cada solicitação.</p>
+      </div>
+      <div id="auth-container"><div class="empty"><div class="empty-title">Nenhuma solicitação pendente</div><div class="empty-sub">Quando um usuário solicitar um cupom com 50%+, aparecerá aqui.</div></div></div>
     </section>
 
     <!-- USERS -->
@@ -441,6 +459,18 @@
     <div class="voucher-wrap" id="modal-wrap">
       <div class="voucher" id="modal-voucher"></div>
     </div>
+  </div>
+</div>
+
+<!-- Modal rejeição -->
+<div class="modal-backdrop" id="modal-reject">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2 style="font-size:16px;font-weight:600;">Rejeitar solicitação</h2>
+      <button class="modal-close" onclick="closeRejectModal()">×</button>
+    </div>
+    <div class="field"><label>Motivo da rejeição <span class="opt">(opcional)</span></label><textarea id="reject-motivo" placeholder="Ex: Desconto acima do permitido para esta unidade…" style="min-height:80px;"></textarea></div>
+    <button class="btn btn-danger" id="btn-confirm-reject" style="width:100%;margin-top:8px;background:var(--danger);color:white;">Confirmar rejeição</button>
   </div>
 </div>
 
@@ -663,6 +693,7 @@ document.querySelectorAll('.tab').forEach(t => {
     document.getElementById('view-'+t.dataset.view).classList.add('active');
     if (t.dataset.view === 'list') renderList();
     if (t.dataset.view === 'users') renderUsers();
+    if (t.dataset.view === 'auth') renderAuth();
     if (t.dataset.view === 'create') setTimeout(() => scaleVoucher(document.getElementById('voucher-wrap'), document.getElementById('voucher')), 50);
   });
 });
@@ -676,6 +707,11 @@ function updatePreview() {
   F('v-unidade').textContent = F('f-unidade').value || 'Unidade';
   F('v-validade').textContent = F('f-validade').value ? fmtDate(F('f-validade').value) : 'DD/MM/AAAA';
   F('v-codigo').textContent = F('f-codigo').value || '——';
+  const sol = F('v-solicitante');
+  if (currentUser) {
+    sol.textContent = `Solicitado por: ${currentUser.name}`;
+    sol.style.display = 'block';
+  }
 }
 ['f-nome','f-premio','f-subpremio','f-motivo','f-unidade','f-emissao','f-validade','f-codigo','f-obs'].forEach(id => {
   F(id).addEventListener('input', updatePreview);
@@ -689,6 +725,23 @@ F('f-unidade').addEventListener('change', () => {
   }
 });
 F('f-codigo').addEventListener('input', () => { F('f-codigo').dataset.auto = '0'; });
+
+// Percentual: mostra aviso se >= 50% e usuário não é admin
+F('f-percentual').addEventListener('input', () => {
+  const pct = parseInt(F('f-percentual').value) || 0;
+  const aviso = F('percentual-aviso');
+  const btn = F('btn-save');
+  if (pct >= 50 && currentUser?.role !== 'admin') {
+    aviso.style.display = 'inline-block';
+    btn.textContent = 'Solicitar Autorização';
+    btn.style.background = '#8C6A2A';
+  } else {
+    aviso.style.display = 'none';
+    btn.textContent = 'Salvar Cupom';
+    btn.style.background = '';
+  }
+  updatePreview();
+});
 F('btn-regen').addEventListener('click', () => {
   if (!F('f-unidade').value) { toast('Selecione uma unidade primeiro'); return; }
   F('f-codigo').value = generateCode(F('f-unidade').value);
@@ -717,34 +770,57 @@ F('btn-save').addEventListener('click', async () => {
   const missing = Object.entries({nome:'Nome da cliente',premio:'Prêmio',motivo:'Motivo',unidade:'Unidade',emissao:'Emissão',validade:'Validade',codigo:'Código'}).filter(([k])=>!fields[k]).map(([,v])=>v);
   if (missing.length) { toast('Preencha: '+missing.join(', '),'error'); return; }
 
-  const btn = F('btn-save'); btn.disabled = true; btn.textContent = 'Salvando…';
+  const percentual = parseInt(F('f-percentual').value) || 0;
+  const needsAuth = percentual >= 50 && currentUser?.role !== 'admin';
+
+  const btn = F('btn-save');
+  btn.disabled = true;
+  btn.textContent = needsAuth ? 'Enviando solicitação…' : 'Salvando…';
 
   // Check duplicate code
+  const table = needsAuth ? 'solicitacoes' : 'cupons';
   const { count } = await db.from('cupons').select('*',{count:'exact',head:true}).eq('codigo', fields.codigo);
   if (count > 0) {
-    if (!confirm('Já existe um cupom com este código. Gerar novo código e continuar?')) { btn.disabled=false; btn.textContent='Salvar Cupom'; return; }
+    if (!confirm('Já existe um cupom com este código. Gerar novo código e continuar?')) { btn.disabled=false; btn.textContent=needsAuth?'Solicitar Autorização':'Salvar Cupom'; return; }
     fields.codigo = generateCode(fields.unidade);
     F('f-codigo').value = fields.codigo;
     updatePreview();
   }
 
-  const { error } = await db.from('cupons').insert({
+  const payload = {
     ...fields,
     subpremio: F('f-subpremio').value.trim(),
     obs: F('f-obs').value.trim(),
-    criado_por: currentUser.id,
-    criado_por_nome: currentUser.name
-  });
+    percentual,
+    solicitado_por: currentUser.id,
+    solicitado_por_nome: currentUser.name
+  };
 
-  btn.disabled = false; btn.textContent = 'Salvar Cupom';
-
-  if (error) { toast('Erro ao salvar: '+error.message,'error'); return; }
-
-  toast(`Cupom ${fields.codigo} salvo`, 'success');
-  updateBadges();
+  if (needsAuth) {
+    // Salva como solicitação pendente
+    const { error } = await db.from('solicitacoes').insert(payload);
+    btn.disabled = false; btn.textContent = 'Solicitar Autorização';
+    if (error) { toast('Erro ao enviar solicitação: '+error.message,'error'); return; }
+    toast(`Solicitação enviada! Aguardando aprovação do administrador.`, 'success');
+    updateBadges();
+  } else {
+    // Salva direto como cupom
+    const { error } = await db.from('cupons').insert({
+      ...payload,
+      criado_por: currentUser.id,
+      criado_por_nome: currentUser.name
+    });
+    btn.disabled = false; btn.textContent = 'Salvar Cupom';
+    if (error) { toast('Erro ao salvar: '+error.message,'error'); return; }
+    toast(`Cupom ${fields.codigo} salvo`, 'success');
+    updateBadges();
+  }
 
   const u = F('f-unidade').value;
   ['f-nome','f-premio','f-subpremio','f-motivo','f-obs'].forEach(id => F(id).value = '');
+  F('f-percentual').value = '';
+  F('percentual-aviso').style.display = 'none';
+  btn.textContent = 'Salvar Cupom'; btn.style.background = '';
   F('f-codigo').value = generateCode(u);
   F('f-codigo').dataset.auto = '1';
   updatePreview();
@@ -862,11 +938,16 @@ async function updateBadges() {
   if (currentUser?.role==='admin') {
     const { count: uc } = await db.from('usuarios').select('*',{count:'exact',head:true});
     F('userCountBadge').textContent = uc||0;
+    const { count: ac } = await db.from('solicitacoes').select('*',{count:'exact',head:true}).eq('status','pendente');
+    const authBadge = F('authBadge');
+    authBadge.textContent = ac||0;
+    authBadge.style.display = (ac && ac > 0) ? 'inline-block' : 'none';
   }
 }
 
 // ── VOUCHER MODAL ─────────────────────────────────────────────
 function buildVoucherHTML(c) {
+  const solicitante = c.solicitado_por_nome || c.criado_por_nome || '';
   return `<div class="voucher-left">
     <div class="voucher-logo"><span class="l1">Studio</span><span class="l2">LU RECH</span></div>
     <div class="voucher-tag">Yay! Você ganhou um</div>
@@ -884,8 +965,102 @@ function buildVoucherHTML(c) {
       Mal podemos esperar para recebê-la por aqui! Aproveite!
     </div>
     <div class="voucher-code"><span>Cupom: </span><span>${escapeHTML(c.codigo)}</span></div>
+    ${solicitante ? `<div style="font-size:12px;color:#6b6b6b;margin-top:8px;letter-spacing:0.3px;">Solicitado por: ${escapeHTML(solicitante)}</div>` : ''}
   </div><div class="voucher-right"></div>`;
 }
+
+// ── AUTORIZAÇÕES ──────────────────────────────────────────────
+async function renderAuth() {
+  if (currentUser?.role !== 'admin') return;
+  const { data: list } = await db.from('solicitacoes').select('*').eq('status','pendente').order('solicitado_em',{ascending:true});
+  const container = F('auth-container');
+
+  if (!list?.length) {
+    container.innerHTML = `<div class="empty"><div class="empty-title">Nenhuma solicitação pendente</div><div class="empty-sub">Quando um usuário solicitar um cupom com 50%+, aparecerá aqui.</div></div>`;
+    return;
+  }
+
+  const cards = list.map(s => `
+    <div style="background:white;border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div style="font-size:16px;font-weight:700;margin-bottom:4px;">${escapeHTML(s.nome)}</div>
+          <div style="font-size:13px;color:var(--gray);margin-bottom:10px;">
+            Solicitado por <b>${escapeHTML(s.solicitado_por_nome)}</b> · ${escapeHTML(s.unidade)} · ${new Date(s.solicitado_em).toLocaleString('pt-BR')}
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:12px;">
+            <span class="code-pill">${escapeHTML(s.codigo)}</span>
+            <span class="motivo-pill ${motivoClass(s.motivo)}">${escapeHTML(s.motivo)}</span>
+            <span style="background:#FCE3E3;color:#8B2A2A;padding:3px 10px;border-radius:12px;font-weight:700;">${s.percentual}% de desconto</span>
+            <span>${escapeHTML(s.premio)}${s.subpremio?` (${escapeHTML(s.subpremio)})`:''}</span>
+          </div>
+          <div style="font-size:12px;color:var(--gray);margin-top:8px;">
+            Emissão: ${fmtDate(s.emissao)} · Validade: ${fmtDate(s.validade)}
+            ${s.obs?`<br>Obs: ${escapeHTML(s.obs)}`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0;">
+          <button onclick="approveAuth('${s.id}')" style="padding:10px 18px;background:var(--success);color:white;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">✓ Aprovar</button>
+          <button onclick="openRejectModal('${s.id}')" style="padding:10px 18px;background:var(--danger);color:white;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;">✕ Rejeitar</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  container.innerHTML = cards;
+}
+
+window.approveAuth = async function(id) {
+  const { data: s } = await db.from('solicitacoes').select('*').eq('id',id).single();
+  if (!s) return;
+  if (!confirm(`Aprovar o cupom de ${s.percentual}% para ${s.nome}?`)) return;
+
+  // Check duplicate code
+  const { count } = await db.from('cupons').select('*',{count:'exact',head:true}).eq('codigo',s.codigo);
+  let codigo = s.codigo;
+  if (count > 0) codigo = generateCode(s.unidade);
+
+  const { error } = await db.from('cupons').insert({
+    nome:s.nome, premio:s.premio, subpremio:s.subpremio,
+    motivo:s.motivo, unidade:s.unidade, emissao:s.emissao,
+    validade:s.validade, codigo, obs:s.obs, percentual:s.percentual,
+    solicitado_por:s.solicitado_por, solicitado_por_nome:s.solicitado_por_nome,
+    criado_por:currentUser.id, criado_por_nome:currentUser.name
+  });
+  if (error) { toast('Erro ao aprovar: '+error.message,'error'); return; }
+
+  await db.from('solicitacoes').update({
+    status:'aprovado', aprovado_por:currentUser.id,
+    aprovado_por_nome:currentUser.name, aprovado_em:new Date().toISOString()
+  }).eq('id',id);
+
+  toast(`Cupom ${codigo} aprovado e gerado!`,'success');
+  updateBadges();
+  renderAuth();
+};
+
+window.openRejectModal = function(id) {
+  F('reject-motivo').value = '';
+  F('btn-confirm-reject').dataset.solId = id;
+  F('modal-reject').classList.add('show');
+  setTimeout(()=>F('reject-motivo').focus(),100);
+};
+window.closeRejectModal = () => F('modal-reject').classList.remove('show');
+F('modal-reject').addEventListener('click',e=>{if(e.target.id==='modal-reject')closeRejectModal();});
+
+F('btn-confirm-reject').addEventListener('click', async () => {
+  const id = F('btn-confirm-reject').dataset.solId;
+  const motivo = F('reject-motivo').value.trim();
+  await db.from('solicitacoes').update({
+    status:'rejeitado', aprovado_por:currentUser.id,
+    aprovado_por_nome:currentUser.name, aprovado_em:new Date().toISOString(),
+    motivo_rejeicao:motivo
+  }).eq('id',id);
+  closeRejectModal();
+  toast('Solicitação rejeitada','success');
+  updateBadges();
+  renderAuth();
+});
 
 window.viewCoupon = async function(id) {
   const { data: c } = await db.from('cupons').select('*').eq('id',id).single();

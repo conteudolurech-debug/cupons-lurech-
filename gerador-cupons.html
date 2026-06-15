@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Cupons — Studio Lu Rech</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #B68B3C; --gold-dark: #8C6A2A;
+    --cream: #FAF7F2; --ink: #1a1a1a;
+    --gray: #6b6b6b; --line: #e5e0d6;
+    --bg: #f4f1ec; --danger: #8B2A2A; --success: #2A6B3F;
+  }
+  body { font-family: 'Montserrat', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+  /* AUTH */
+  .auth-overlay {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, var(--cream) 0%, var(--bg) 100%);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; z-index: 1000;
+  }
+  .auth-overlay::before {
+    content: ''; position: absolute; top: 0; right: 0;
+    width: 40%; height: 100%; background: var(--gold);
+    background-image: repeating-linear-gradient(45deg,rgba(0,0,0,.06) 0 1px,transparent 1px 40px),
+      repeating-linear-gradient(-45deg,rgba(0,0,0,.06) 0 1px,transparent 1px 40px);
+    z-index: 0;
+  }
+  .auth-card {
+    background: white; border-radius: 16px; max-width: 440px;
+    width: 100%; padding: 40px 36px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.15); position: relative; z-index: 1;
+  }
+  .auth-logo { text-align: center; margin-bottom: 30px; font-family: 'Cormorant Garamond',serif; line-height:1; }
+  .auth-logo .small { font-size:11px; letter-spacing:4px; text-transform:uppercase; font-family:'Montserrat',sans-serif; font-weight:500; color:var(--gray); display:block; }
+  .auth-logo .big { font-size:30px; font-weight:500; letter-spacing:2px; display:block; margin-top:6px; }
+  .auth-title { font-size:22px; font-weight:600; text-align:center; margin-bottom:6px; }
+  .auth-subtitle { font-size:13px; color:var(--gray); text-align:center; margin-bottom:26px; line-height:1.5; }
+  .auth-field { margin-bottom:14px; }
+  .auth-field label { display:block; font-size:12px; font-weight:600; margin-bottom:6px; }
+  .auth-field input, .auth-field select { width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:14px; }
+  .auth-field input:focus { outline:none; border-color:var(--gold); }
+  .auth-btn { width:100%; padding:13px; margin-top:8px; background:var(--ink); color:white; border:none; border-radius:8px; cursor:pointer; font-family:inherit; font-size:14px; font-weight:600; }
+  .auth-btn:hover { background:#000; }
+  .auth-btn:disabled { opacity:.5; cursor:not-allowed; }
+  .auth-error { background:#FCE3E3; color:var(--danger); padding:10px 12px; border-radius:8px; font-size:13px; margin-top:12px; display:none; }
+  .auth-error.show { display:block; }
+  .auth-info { background:#FFF4DC; color:#8C6A2A; padding:10px 12px; border-radius:8px; font-size:12px; margin-bottom:18px; line-height:1.45; }
+  .auth-mode { display:none; }
+  .auth-mode.active { display:block; }
+  .auth-footer { text-align:center; margin-top:22px; font-size:12px; color:var(--gray); }
+
+  /* LOADING */
+  .loading-screen {
+    position:fixed; inset:0; background:var(--cream);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    z-index:999;
+  }
+  .loading-logo { font-family:'Cormorant Garamond',serif; text-align:center; margin-bottom:24px; }
+  .loading-logo .s { font-size:11px; letter-spacing:4px; font-family:'Montserrat',sans-serif; font-weight:500; color:var(--gray); }
+  .loading-logo .b { font-size:32px; font-weight:500; letter-spacing:2px; }
+  .spinner { width:32px; height:32px; border:3px solid var(--line); border-top-color:var(--gold); border-radius:50%; animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .loading-text { font-size:12px; color:var(--gray); margin-top:12px; }
+
+  /* HEADER */
+  header { background:white; border-bottom:1px solid var(--line); padding:16px 32px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 1px 3px rgba(0,0,0,.04); gap:20px; }
+  .brand { display:flex; align-items:center; gap:14px; }
+  .brand-logo { font-family:'Cormorant Garamond',serif; line-height:1; }
+  .brand-logo .small { font-size:9px; letter-spacing:3px; text-transform:uppercase; font-family:'Montserrat',sans-serif; font-weight:500; color:var(--gray); }
+  .brand-logo .big { font-size:22px; font-weight:500; letter-spacing:1px; }
+  .brand-text h1 { font-size:16px; font-weight:600; }
+  .brand-text p { font-size:12px; color:var(--gray); margin-top:2px; }
+  nav { display:flex; gap:6px; flex:1; justify-content:center; }
+  .tab { background:transparent; border:1px solid transparent; color:var(--gray); padding:10px 18px; border-radius:8px; cursor:pointer; font-family:inherit; font-size:13px; font-weight:500; transition:all .15s; }
+  .tab:hover { background:var(--bg); color:var(--ink); }
+  .tab.active { background:var(--ink); color:white; }
+  .tab .badge { display:inline-block; background:var(--gold); color:white; border-radius:10px; padding:1px 7px; margin-left:6px; font-size:11px; font-weight:600; }
+  .admin-only { display:none !important; }
+  .is-admin .admin-only { display:inline-flex !important; }
+  .user-chip { display:flex; align-items:center; gap:10px; padding:6px 8px 6px 6px; background:var(--bg); border-radius:10px; }
+  .user-avatar { width:34px; height:34px; border-radius:50%; background:var(--gold); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; text-transform:uppercase; }
+  .user-info { line-height:1.2; }
+  .user-name { font-size:13px; font-weight:600; }
+  .user-role { font-size:10px; color:var(--gray); text-transform:uppercase; letter-spacing:.5px; }
+  .logout-btn { background:transparent; border:1px solid var(--line); border-radius:6px; padding:6px 10px; cursor:pointer; font-family:inherit; font-size:11px; color:var(--gray); margin-left:4px; }
+  .logout-btn:hover { background:white; color:var(--ink); }
+
+  main { padding:24px 32px; max-width:1600px; margin:0 auto; }
+  .view { display:none; }
+  .view.active { display:block; }
+
+  /* FORM */
+  .layout { display:grid; grid-template-columns:380px 1fr; gap:24px; }
+  @media (max-width:1100px) { .layout { grid-template-columns:1fr; } }
+  .panel { background:white; border:1px solid var(--line); border-radius:12px; padding:24px; }
+  .panel h2 { font-size:14px; font-weight:600; letter-spacing:.3px; text-transform:uppercase; color:var(--gray); margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid var(--line); }
+  .field { margin-bottom:14px; }
+  .field label { display:block; font-size:12px; font-weight:600; color:var(--ink); margin-bottom:6px; }
+  .field label .opt { color:var(--gray); font-weight:400; }
+  .field input, .field select, .field textarea { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13px; background:white; color:var(--ink); transition:border-color .15s; }
+  .field input:focus, .field select:focus, .field textarea:focus { outline:none; border-color:var(--gold); }
+  .field textarea { resize:vertical; min-height:60px; }
+  .field-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .code-row { display:flex; gap:6px; }
+  .code-row input { flex:1; font-family:'Courier New',monospace; letter-spacing:1px; }
+  .btn-mini { padding:0 12px; background:var(--bg); border:1px solid var(--line); border-radius:8px; cursor:pointer; font-size:12px; color:var(--ink); font-family:inherit; }
+  .btn-mini:hover { background:var(--line); }
+  .actions { display:flex; gap:10px; margin-top:20px; padding-top:18px; border-top:1px solid var(--line); }
+  .btn { flex:1; padding:12px 16px; border:none; border-radius:8px; cursor:pointer; font-family:inherit; font-size:13px; font-weight:600; transition:all .15s; }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .btn-primary { background:var(--ink); color:white; }
+  .btn-primary:hover:not(:disabled) { background:#000; }
+  .btn-secondary { background:var(--gold); color:white; }
+  .btn-secondary:hover { background:var(--gold-dark); }
+  .btn-ghost { background:white; color:var(--ink); border:1px solid var(--line); }
+  .btn-ghost:hover { background:var(--bg); }
+
+  /* VOUCHER PREVIEW */
+  .preview-container { background:white; border:1px solid var(--line); border-radius:12px; padding:24px; }
+  .preview-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid var(--line); }
+  .preview-header h2 { font-size:14px; font-weight:600; letter-spacing:.3px; text-transform:uppercase; color:var(--gray); }
+  .voucher-wrap { width:100%; aspect-ratio:1240/900; background:var(--bg); border-radius:8px; overflow:hidden; position:relative; }
+  .voucher { position:absolute; top:0; left:0; width:1240px; height:900px; transform-origin:top left; background:var(--cream); display:grid; grid-template-columns:1fr 360px; font-family:'Montserrat',sans-serif; }
+  .voucher-left { padding:70px 80px 60px; display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .voucher-logo { font-family:'Cormorant Garamond',serif; line-height:1; margin-bottom:60px; }
+  .voucher-logo .l1 { font-size:17px; letter-spacing:6px; font-family:'Montserrat',sans-serif; font-weight:500; display:block; text-align:center; }
+  .voucher-logo .l2 { font-size:44px; font-weight:500; letter-spacing:3px; display:block; text-align:center; margin-top:4px; }
+  .voucher-tag { font-size:22px; letter-spacing:5px; font-weight:500; text-transform:uppercase; margin-bottom:10px; }
+  .voucher-title { font-family:'Playfair Display',serif; font-style:italic; font-weight:700; line-height:.9; margin-bottom:30px; }
+  .voucher-title .beauty { font-size:130px; color:var(--gold); display:block; text-align:center; margin-bottom:-20px; }
+  .voucher-title .voucher-word { font-size:100px; color:var(--ink); display:block; text-align:center; }
+  .ribbon { background:var(--gold); color:white; padding:16px 60px; position:relative; margin:0 auto 50px; font-size:28px; letter-spacing:4px; font-weight:500; text-transform:uppercase; display:inline-block; }
+  .ribbon::before, .ribbon::after { content:''; position:absolute; top:0; width:22px; height:100%; background:var(--gold); }
+  .ribbon::before { left:-22px; clip-path:polygon(100% 0,100% 100%,0 50%); }
+  .ribbon::after { right:-22px; clip-path:polygon(0 0,0 100%,100% 50%); }
+  .ribbon .dot-l, .ribbon .dot-r { position:absolute; top:50%; width:8px; height:8px; border-radius:50%; background:var(--cream); transform:translateY(-50%); }
+  .ribbon .dot-l { left:14px; } .ribbon .dot-r { right:14px; }
+  .ribbon-sub { font-size:12px; letter-spacing:2px; text-transform:lowercase; margin-left:6px; vertical-align:super; }
+  .voucher-greeting { font-size:26px; font-weight:400; line-height:1.35; margin-bottom:50px; max-width:540px; }
+  .voucher-greeting b { font-weight:700; }
+  .voucher-body { font-size:16px; line-height:1.55; color:var(--ink); max-width:600px; margin-bottom:18px; }
+  .voucher-code { font-size:16px; font-weight:700; letter-spacing:1px; }
+  .voucher-code span { font-weight:400; }
+  .voucher-right { background:var(--gold); background-image:repeating-linear-gradient(45deg,rgba(0,0,0,.06) 0 1px,transparent 1px 40px),repeating-linear-gradient(-45deg,rgba(0,0,0,.06) 0 1px,transparent 1px 40px); position:relative; }
+  .voucher-right::before { content:''; position:absolute; inset:0; background-image:radial-gradient(circle at 25% 25%,rgba(255,255,255,.06) 0 2px,transparent 3px),radial-gradient(circle at 75% 75%,rgba(0,0,0,.05) 0 2px,transparent 3px); background-size:80px 80px,80px 80px; }
+
+  /* LIST */
+  .toolbar { display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items:center; }
+  .toolbar input, .toolbar select { padding:9px 12px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13px; background:white; }
+  .toolbar input[type=search] { flex:1; min-width:200px; }
+  .toolbar .spacer { flex:1; }
+  table { width:100%; background:white; border:1px solid var(--line); border-radius:12px; border-collapse:separate; border-spacing:0; overflow:hidden; }
+  th, td { padding:12px 14px; text-align:left; font-size:13px; border-bottom:1px solid var(--line); }
+  th { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--gray); background:var(--bg); }
+  tr:last-child td { border-bottom:none; }
+  tbody tr:hover { background:#fafaf7; }
+  .code-pill { display:inline-block; padding:3px 8px; background:var(--bg); border-radius:4px; font-family:'Courier New',monospace; font-size:12px; font-weight:600; letter-spacing:.5px; }
+  .motivo-pill { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600; }
+  .motivo-aniversario { background:#FFF4DC; color:#8C6A2A; }
+  .motivo-primeira { background:#E3F0E8; color:#2A6B3F; }
+  .motivo-reativacao { background:#E8E1F5; color:#4A2B7E; }
+  .motivo-indicacao { background:#FCE3E3; color:#8B2A2A; }
+  .motivo-feedback { background:#DCEEFB; color:#1F4E79; }
+  .motivo-presente { background:#FBE5F0; color:#8B2A6B; }
+  .motivo-granado { background:#E7E4DC; color:#4A3B22; }
+  .motivo-parceria { background:#FFF0D6; color:#7A4A14; }
+  .status-pill { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600; }
+  .status-valido { background:#E3F0E8; color:#2A6B3F; }
+  .status-expirado { background:#f0e3e3; color:#8B2A2A; }
+  .status-inativo { background:#ECECEC; color:#6b6b6b; }
+  .role-pill { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600; }
+  .role-admin { background:var(--ink); color:white; }
+  .role-user { background:#DCEEFB; color:#1F4E79; }
+  .row-actions { display:flex; gap:6px; }
+  .row-actions button { padding:5px 9px; border:1px solid var(--line); background:white; border-radius:6px; cursor:pointer; font-size:11px; font-family:inherit; color:var(--ink); }
+  .row-actions button:hover { background:var(--bg); }
+  .row-actions .del { color:#8B2A2A; }
+  .row-actions .del:hover { background:#FCE3E3; }
+  .row-actions button:disabled { opacity:.4; cursor:not-allowed; }
+  .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px; }
+  .stat { background:white; border:1px solid var(--line); border-radius:12px; padding:16px 18px; }
+  .stat-label { font-size:11px; color:var(--gray); text-transform:uppercase; letter-spacing:.5px; font-weight:600; }
+  .stat-value { font-size:26px; font-weight:600; margin-top:4px; }
+  .empty { background:white; border:1px dashed var(--line); border-radius:12px; padding:60px 20px; text-align:center; color:var(--gray); }
+  .empty-title { font-size:16px; color:var(--ink); margin-bottom:6px; font-weight:600; }
+  .empty-sub { font-size:13px; }
+
+  /* USERS */
+  .users-layout { display:grid; grid-template-columns:380px 1fr; gap:24px; }
+  @media (max-width:1100px) { .users-layout { grid-template-columns:1fr; } }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--ink); color:white; padding:12px 18px; border-radius:8px; font-size:13px; font-weight:500; box-shadow:0 8px 24px rgba(0,0,0,.2); transform:translateY(100px); opacity:0; transition:all .25s; pointer-events:none; z-index:2000; }
+  .toast.show { transform:translateY(0); opacity:1; }
+  .toast.error { background:var(--danger); }
+  .toast.success { background:var(--success); }
+
+  /* MODAL */
+  .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; z-index:100; padding:20px; }
+  .modal-backdrop.show { display:flex; }
+  .modal { background:white; border-radius:12px; max-width:1000px; width:100%; max-height:90vh; overflow:auto; padding:24px; }
+  .modal-sm { max-width:440px; }
+  .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+  .modal-close { background:var(--bg); border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:18px; }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loading-screen">
+  <div class="loading-logo">
+    <div class="s">Studio</div>
+    <div class="b">LU RECH</div>
+  </div>
+  <div class="spinner"></div>
+  <div class="loading-text">Conectando ao sistema…</div>
+</div>
+
+<!-- AUTH -->
+<div class="auth-overlay" id="auth-overlay" style="display:none;">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="small">Studio</span>
+      <span class="big">LU RECH</span>
+    </div>
+
+    <!-- SETUP -->
+    <div class="auth-mode" id="auth-setup">
+      <h2 class="auth-title">Configuração inicial</h2>
+      <p class="auth-subtitle">Crie a conta principal de administrador.</p>
+      <div class="auth-info">🔑 Esta será a conta <b>chefe</b> com acesso total. Anote bem a senha.</div>
+      <div class="auth-field"><label>Seu nome</label><input type="text" id="setup-name" placeholder="Ex: Lu Rech" maxlength="40"></div>
+      <div class="auth-field"><label>Nome de usuário</label><input type="text" id="setup-username" placeholder="Ex: lurech" maxlength="20"></div>
+      <div class="auth-field"><label>Senha (mínimo 6 caracteres)</label><input type="password" id="setup-password" placeholder="••••••••"></div>
+      <div class="auth-field"><label>Confirme a senha</label><input type="password" id="setup-password2" placeholder="••••••••"></div>
+      <button class="auth-btn" id="btn-setup">Criar conta administrador</button>
+      <div class="auth-error" id="setup-error"></div>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="auth-mode" id="auth-login">
+      <h2 class="auth-title">Entrar</h2>
+      <p class="auth-subtitle">Acesse o gerador de cupons.</p>
+      <div class="auth-field"><label>Nome de usuário</label><input type="text" id="login-username" placeholder="usuário" autocomplete="username"></div>
+      <div class="auth-field"><label>Senha</label><input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"></div>
+      <button class="auth-btn" id="btn-login">Entrar</button>
+      <div class="auth-error" id="login-error"></div>
+      <div class="auth-footer">Studio Lu Rech · Gerador de Cupons</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-shell" hidden>
+  <header>
+    <div class="brand">
+      <div class="brand-logo">
+        <span class="small">Studio</span>
+        <span class="big">LU RECH</span>
+      </div>
+      <div class="brand-text">
+        <h1>Gerador de Cupons</h1>
+        <p>Crie, controle e exporte vouchers em um só lugar</p>
+      </div>
+    </div>
+    <nav>
+      <button class="tab active" data-view="create">Criar Cupom</button>
+      <button class="tab" data-view="list">Cupons Gerados <span class="badge" id="countBadge">0</span></button>
+      <button class="tab admin-only" data-view="users">Usuários <span class="badge" id="userCountBadge">0</span></button>
+    </nav>
+    <div class="user-chip">
+      <span class="user-avatar" id="user-avatar">?</span>
+      <div class="user-info">
+        <div class="user-name" id="user-name">—</div>
+        <div class="user-role" id="user-role">—</div>
+      </div>
+      <button class="logout-btn" id="btn-logout">Sair</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- CREATE -->
+    <section class="view active" id="view-create">
+      <div class="layout">
+        <div class="panel">
+          <h2>Dados do Cupom</h2>
+          <div class="field"><label>Nome da cliente *</label><input type="text" id="f-nome" placeholder="Ex: Isadora Leão" maxlength="60"></div>
+          <div class="field"><label>Prêmio / Valor do desconto *</label><input type="text" id="f-premio" placeholder="Ex: VALE UM DRY&amp;GO ou 20% DE DESCONTO" maxlength="40"></div>
+          <div class="field"><label>Subtítulo do prêmio <span class="opt">(opcional)</span></label><input type="text" id="f-subpremio" placeholder="Ex: Escova" maxlength="30"></div>
+          <div class="field">
+            <label>Motivo do cupom *</label>
+            <select id="f-motivo">
+              <option value="">Selecione…</option>
+              <option>Aniversário</option><option>Primeira compra</option>
+              <option>Reativação</option><option>Indicação</option>
+              <option>Feedback</option><option>Presente</option>
+              <option>Granado</option><option>Parceria</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Unidade *</label>
+            <select id="f-unidade">
+              <option value="">Selecione…</option>
+              <option>Barra Prime</option><option>Moema</option>
+              <option>Copacabana</option><option>Leblon</option><option>Blue Center</option>
+            </select>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Data de emissão *</label><input type="date" id="f-emissao"></div>
+            <div class="field"><label>Data de validade *</label><input type="date" id="f-validade"></div>
+          </div>
+          <div class="field">
+            <label>Código do cupom *</label>
+            <div class="code-row">
+              <input type="text" id="f-codigo" placeholder="Selecione a unidade para gerar">
+              <button type="button" class="btn-mini" id="btn-regen">↻</button>
+            </div>
+          </div>
+          <div class="field"><label>Observações <span class="opt">(opcional)</span></label><textarea id="f-obs" placeholder="Notas internas…"></textarea></div>
+          <div class="actions">
+            <button class="btn btn-ghost" id="btn-clear">Limpar</button>
+            <button class="btn btn-primary" id="btn-save">Salvar Cupom</button>
+          </div>
+        </div>
+
+        <div class="preview-container">
+          <div class="preview-header">
+            <h2>Pré-visualização</h2>
+            <button class="btn btn-secondary" id="btn-png" style="flex:0 0 auto;padding:10px 18px;">↓ Baixar PNG</button>
+          </div>
+          <div class="voucher-wrap" id="voucher-wrap">
+            <div class="voucher" id="voucher">
+              <div class="voucher-left">
+                <div class="voucher-logo"><span class="l1">Studio</span><span class="l2">LU RECH</span></div>
+                <div class="voucher-tag">Yay! Você ganhou um</div>
+                <div class="voucher-title">
+                  <span class="beauty">Beauty</span>
+                  <span class="voucher-word">voucher</span>
+                </div>
+                <div class="ribbon">
+                  <span class="dot-l"></span>
+                  <span id="v-premio">VALE UM DRY&amp;GO</span><span class="ribbon-sub" id="v-subpremio">(Escova)</span>
+                  <span class="dot-r"></span>
+                </div>
+                <div class="voucher-greeting"><b id="v-nome">Nome da Cliente</b>, você merece <b>mais do que beleza!</b></div>
+                <div class="voucher-body">
+                  Utilizável em nossa unidade do Studio Lu Rech <b id="v-unidade">Unidade</b> sob marcação prévia,<br>
+                  válido para ser utilizado até <b id="v-validade">DD/MM/AAAA</b>.<br>
+                  Entre em contato com uma de nossas recepções e garanta o seu horário.<br>
+                  Mal podemos esperar para recebê-la por aqui! Aproveite!
+                </div>
+                <div class="voucher-code"><span>Cupom: </span><span id="v-codigo">——</span></div>
+              </div>
+              <div class="voucher-right"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIST -->
+    <section class="view" id="view-list">
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Total emitidos</div><div class="stat-value" id="s-total">0</div></div>
+        <div class="stat"><div class="stat-label">Válidos hoje</div><div class="stat-value" id="s-validos">0</div></div>
+        <div class="stat"><div class="stat-label">Expirados</div><div class="stat-value" id="s-expirados">0</div></div>
+        <div class="stat"><div class="stat-label">Este mês</div><div class="stat-value" id="s-mes">0</div></div>
+      </div>
+      <div class="toolbar">
+        <input type="search" id="filter-search" placeholder="Buscar por nome, código…">
+        <select id="filter-motivo">
+          <option value="">Todos motivos</option>
+          <option>Aniversário</option><option>Primeira compra</option>
+          <option>Reativação</option><option>Indicação</option>
+          <option>Feedback</option><option>Presente</option>
+          <option>Granado</option><option>Parceria</option>
+        </select>
+        <select id="filter-unidade">
+          <option value="">Todas unidades</option>
+          <option>Barra Prime</option><option>Moema</option>
+          <option>Copacabana</option><option>Leblon</option><option>Blue Center</option>
+        </select>
+        <select id="filter-status">
+          <option value="">Todos status</option>
+          <option value="valido">Válidos</option>
+          <option value="expirado">Expirados</option>
+        </select>
+        <select id="filter-criador" class="admin-only"><option value="">Todos criadores</option></select>
+        <div class="spacer"></div>
+        <button class="btn btn-ghost" id="btn-export" style="flex:0 0 auto;padding:9px 16px;">↓ Exportar CSV</button>
+      </div>
+      <div id="list-container"></div>
+    </section>
+
+    <!-- USERS -->
+    <section class="view" id="view-users">
+      <div class="users-layout">
+        <div class="panel">
+          <h2>Adicionar usuário</h2>
+          <div class="field"><label>Nome completo *</label><input type="text" id="nu-name" placeholder="Ex: Maria Souza" maxlength="40"></div>
+          <div class="field"><label>Nome de usuário *</label><input type="text" id="nu-username" placeholder="Ex: maria" maxlength="20"></div>
+          <div class="field"><label>Senha inicial *</label><input type="text" id="nu-password" placeholder="Mínimo 6 caracteres"></div>
+          <div class="field"><label>Função *</label><select id="nu-role"><option value="user">Usuário</option><option value="admin">Administrador</option></select></div>
+          <div class="field">
+            <label>Unidade <span class="opt">(opcional)</span></label>
+            <select id="nu-unidade">
+              <option value="">—</option>
+              <option>Barra Prime</option><option>Moema</option>
+              <option>Copacabana</option><option>Leblon</option><option>Blue Center</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="btn-add-user" style="width:100%;margin-top:8px;">Adicionar usuário</button>
+        </div>
+        <div class="panel" style="padding:0;">
+          <div style="padding:18px 24px;border-bottom:1px solid var(--line);"><h2 style="margin:0;padding:0;border:none;">Usuários cadastrados</h2></div>
+          <div id="users-list"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Modal voucher -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title" style="font-size:16px;font-weight:600;">Cupom</h2>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" id="modal-png" style="padding:8px 16px;font-size:12px;">↓ Baixar PNG</button>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+    </div>
+    <div class="voucher-wrap" id="modal-wrap">
+      <div class="voucher" id="modal-voucher"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal senha -->
+<div class="modal-backdrop" id="modal-pwd">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2 style="font-size:16px;font-weight:600;" id="pwd-title">Alterar senha</h2>
+      <button class="modal-close" onclick="closePwdModal()">×</button>
+    </div>
+    <div class="field"><label>Nova senha *</label><input type="text" id="pwd-new" placeholder="Mínimo 6 caracteres"></div>
+    <button class="btn btn-primary" id="btn-change-pwd" style="width:100%;margin-top:8px;">Salvar nova senha</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────
+const SUPABASE_URL = 'https://nztinoxgpnwciuqbisdn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_t9HwpIM38G2qFcm_GtGrWQ_VCkcbZWn';
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SESSION_KEY = 'slr-session-v2';
+
+// ── HELPERS ─────────────────────────────────────────────────
+const UNIDADE_PREFIX = { 'Barra Prime':'BAR','Moema':'MOE','Copacabana':'COP','Leblon':'LEB','Blue Center':'BLU' };
+
+function todayISO() {
+  const d = new Date(), p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+function plusDaysISO(n) {
+  const d = new Date(); d.setDate(d.getDate()+n);
+  const p = x => String(x).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+function fmtDate(iso) {
+  if (!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function generateCode(u) {
+  if (!u) return '';
+  const prefix = UNIDADE_PREFIX[u] || 'LRC';
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return prefix + Array.from({length:4}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+}
+function escapeHTML(s) {
+  return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function motivoClass(m) {
+  return {'Aniversário':'motivo-aniversario','Primeira compra':'motivo-primeira','Reativação':'motivo-reativacao','Indicação':'motivo-indicacao','Feedback':'motivo-feedback','Presente':'motivo-presente','Granado':'motivo-granado','Parceria':'motivo-parceria'}[m]||'';
+}
+function isExpired(iso) { return iso && iso < todayISO(); }
+function initials(n) { return (n||'?').trim().split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase(); }
+
+function toast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' '+type : '');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => { t.className = 'toast'+(type?' '+type:''); }, 2600);
+}
+
+async function hashPassword(pwd) {
+  const enc = new TextEncoder().encode('slr::' + pwd);
+  const hash = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── SESSION ─────────────────────────────────────────────────
+let currentUser = null;
+function loadSession() { try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch { return null; } }
+function saveSession(s) { localStorage.setItem(SESSION_KEY, JSON.stringify(s)); }
+function clearSession() { localStorage.removeItem(SESSION_KEY); }
+
+// ── AUTH ────────────────────────────────────────────────────
+function showAuthMode(mode) {
+  document.getElementById('auth-setup').classList.toggle('active', mode==='setup');
+  document.getElementById('auth-login').classList.toggle('active', mode==='login');
+}
+
+async function bootstrapAuth() {
+  // Check if any users exist
+  const { count } = await db.from('usuarios').select('*', {count:'exact', head:true});
+  if (count === 0) {
+    hideLoading();
+    showAuth();
+    showAuthMode('setup');
+    return;
+  }
+  // Try resume session
+  const session = loadSession();
+  if (session?.userId) {
+    const { data: u } = await db.from('usuarios').select('*').eq('id', session.userId).eq('active', true).single();
+    if (u) {
+      currentUser = u;
+      hideLoading();
+      enterApp();
+      return;
+    }
+    clearSession();
+  }
+  hideLoading();
+  showAuth();
+  showAuthMode('login');
+}
+
+function hideLoading() { document.getElementById('loading-screen').style.display = 'none'; }
+function showAuth() { document.getElementById('auth-overlay').style.display = 'flex'; }
+
+async function setupAdmin() {
+  const name = document.getElementById('setup-name').value.trim();
+  const username = document.getElementById('setup-username').value.trim().toLowerCase();
+  const pwd = document.getElementById('setup-password').value;
+  const pwd2 = document.getElementById('setup-password2').value;
+  const errEl = document.getElementById('setup-error');
+  errEl.classList.remove('show');
+
+  if (!name || !username || !pwd) { errEl.textContent = 'Preencha todos os campos.'; errEl.classList.add('show'); return; }
+  if (!/^[a-z0-9._-]{3,20}$/.test(username)) { errEl.textContent = 'Usuário: 3–20 caracteres, letras minúsculas, números, ponto, hífen ou underscore.'; errEl.classList.add('show'); return; }
+  if (pwd.length < 6) { errEl.textContent = 'Senha deve ter pelo menos 6 caracteres.'; errEl.classList.add('show'); return; }
+  if (pwd !== pwd2) { errEl.textContent = 'As senhas não conferem.'; errEl.classList.add('show'); return; }
+
+  const btn = document.getElementById('btn-setup');
+  btn.disabled = true; btn.textContent = 'Criando…';
+
+  const hash = await hashPassword(pwd);
+  const { data, error } = await db.from('usuarios').insert({
+    username, name, password_hash: hash,
+    role: 'admin', unidade: '', active: true
+  }).select().single();
+
+  btn.disabled = false; btn.textContent = 'Criar conta administrador';
+
+  if (error) { errEl.textContent = 'Erro ao criar conta: ' + error.message; errEl.classList.add('show'); return; }
+
+  currentUser = data;
+  saveSession({ userId: data.id });
+  document.getElementById('auth-overlay').style.display = 'none';
+  toast(`Bem-vindo(a), ${name}!`, 'success');
+  enterApp();
+}
+
+async function login() {
+  const username = document.getElementById('login-username').value.trim().toLowerCase();
+  const pwd = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.classList.remove('show');
+
+  if (!username || !pwd) { errEl.textContent = 'Preencha usuário e senha.'; errEl.classList.add('show'); return; }
+
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true; btn.textContent = 'Entrando…';
+
+  const hash = await hashPassword(pwd);
+  const { data: u } = await db.from('usuarios').select('*').eq('username', username).eq('password_hash', hash).single();
+
+  btn.disabled = false; btn.textContent = 'Entrar';
+
+  if (!u) { errEl.textContent = 'Usuário ou senha incorretos.'; errEl.classList.add('show'); return; }
+  if (!u.active) { errEl.textContent = 'Conta desativada. Fale com o administrador.'; errEl.classList.add('show'); return; }
+
+  currentUser = u;
+  saveSession({ userId: u.id });
+  document.getElementById('login-password').value = '';
+  document.getElementById('auth-overlay').style.display = 'none';
+  toast(`Olá, ${u.name}!`, 'success');
+  enterApp();
+}
+
+function logout() {
+  if (!confirm('Deseja sair?')) return;
+  clearSession();
+  currentUser = null;
+  document.body.classList.remove('is-admin');
+  document.getElementById('app-shell').hidden = true;
+  document.getElementById('auth-overlay').style.display = 'flex';
+  showAuthMode('login');
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+}
+
+function enterApp() {
+  document.getElementById('app-shell').hidden = false;
+  document.body.classList.toggle('is-admin', currentUser.role === 'admin');
+  document.getElementById('user-avatar').textContent = initials(currentUser.name);
+  document.getElementById('user-name').textContent = currentUser.name;
+  document.getElementById('user-role').textContent = currentUser.role === 'admin' ? 'Administrador' : 'Usuário';
+  if (currentUser.unidade) document.getElementById('f-unidade').value = currentUser.unidade;
+  updateBadges();
+  setTimeout(() => scaleVoucher(document.getElementById('voucher-wrap'), document.getElementById('voucher')), 50);
+}
+
+document.getElementById('btn-setup').addEventListener('click', setupAdmin);
+document.getElementById('btn-login').addEventListener('click', login);
+document.getElementById('btn-logout').addEventListener('click', logout);
+document.getElementById('login-password').addEventListener('keyup', e => { if (e.key==='Enter') login(); });
+document.getElementById('setup-password2').addEventListener('keyup', e => { if (e.key==='Enter') setupAdmin(); });
+
+// ── SCALE ────────────────────────────────────────────────────
+function scaleVoucher(wrap, voucher) {
+  const w = wrap.clientWidth; if (!w) return;
+  voucher.style.transform = `scale(${w/1240})`;
+}
+function setupScaling(wId, vId) {
+  const wrap = document.getElementById(wId), voucher = document.getElementById(vId);
+  const update = () => scaleVoucher(wrap, voucher);
+  update();
+  new ResizeObserver(update).observe(wrap);
+}
+
+// ── TABS ─────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    if (t.classList.contains('admin-only') && currentUser?.role !== 'admin') return;
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('view-'+t.dataset.view).classList.add('active');
+    if (t.dataset.view === 'list') renderList();
+    if (t.dataset.view === 'users') renderUsers();
+    if (t.dataset.view === 'create') setTimeout(() => scaleVoucher(document.getElementById('voucher-wrap'), document.getElementById('voucher')), 50);
+  });
+});
+
+// ── FORM PREVIEW ─────────────────────────────────────────────
+const F = id => document.getElementById(id);
+function updatePreview() {
+  F('v-nome').textContent = F('f-nome').value || 'Nome da Cliente';
+  F('v-premio').textContent = (F('f-premio').value || 'VALE UM DRY&GO').toUpperCase();
+  F('v-subpremio').textContent = F('f-subpremio').value ? `(${F('f-subpremio').value})` : '';
+  F('v-unidade').textContent = F('f-unidade').value || 'Unidade';
+  F('v-validade').textContent = F('f-validade').value ? fmtDate(F('f-validade').value) : 'DD/MM/AAAA';
+  F('v-codigo').textContent = F('f-codigo').value || '——';
+}
+['f-nome','f-premio','f-subpremio','f-motivo','f-unidade','f-emissao','f-validade','f-codigo','f-obs'].forEach(id => {
+  F(id).addEventListener('input', updatePreview);
+  F(id).addEventListener('change', updatePreview);
+});
+F('f-unidade').addEventListener('change', () => {
+  if (!F('f-codigo').value || F('f-codigo').dataset.auto==='1') {
+    F('f-codigo').value = generateCode(F('f-unidade').value);
+    F('f-codigo').dataset.auto = '1';
+    updatePreview();
+  }
+});
+F('f-codigo').addEventListener('input', () => { F('f-codigo').dataset.auto = '0'; });
+F('btn-regen').addEventListener('click', () => {
+  if (!F('f-unidade').value) { toast('Selecione uma unidade primeiro'); return; }
+  F('f-codigo').value = generateCode(F('f-unidade').value);
+  F('f-codigo').dataset.auto = '1';
+  updatePreview();
+});
+F('f-emissao').value = todayISO();
+F('f-validade').value = plusDaysISO(60);
+updatePreview();
+
+// ── SAVE COUPON ───────────────────────────────────────────────
+F('btn-clear').addEventListener('click', () => {
+  if (!confirm('Limpar todos os campos?')) return;
+  ['f-nome','f-premio','f-subpremio','f-obs'].forEach(id => F(id).value = '');
+  F('f-motivo').value = '';
+  F('f-unidade').value = currentUser?.unidade || '';
+  F('f-emissao').value = todayISO();
+  F('f-validade').value = plusDaysISO(60);
+  F('f-codigo').value = F('f-unidade').value ? generateCode(F('f-unidade').value) : '';
+  F('f-codigo').dataset.auto = '1';
+  updatePreview();
+});
+
+F('btn-save').addEventListener('click', async () => {
+  const fields = { nome: F('f-nome').value.trim(), premio: F('f-premio').value.trim(), motivo: F('f-motivo').value, unidade: F('f-unidade').value, emissao: F('f-emissao').value, validade: F('f-validade').value, codigo: F('f-codigo').value.trim() };
+  const missing = Object.entries({nome:'Nome da cliente',premio:'Prêmio',motivo:'Motivo',unidade:'Unidade',emissao:'Emissão',validade:'Validade',codigo:'Código'}).filter(([k])=>!fields[k]).map(([,v])=>v);
+  if (missing.length) { toast('Preencha: '+missing.join(', '),'error'); return; }
+
+  const btn = F('btn-save'); btn.disabled = true; btn.textContent = 'Salvando…';
+
+  // Check duplicate code
+  const { count } = await db.from('cupons').select('*',{count:'exact',head:true}).eq('codigo', fields.codigo);
+  if (count > 0) {
+    if (!confirm('Já existe um cupom com este código. Gerar novo código e continuar?')) { btn.disabled=false; btn.textContent='Salvar Cupom'; return; }
+    fields.codigo = generateCode(fields.unidade);
+    F('f-codigo').value = fields.codigo;
+    updatePreview();
+  }
+
+  const { error } = await db.from('cupons').insert({
+    ...fields,
+    subpremio: F('f-subpremio').value.trim(),
+    obs: F('f-obs').value.trim(),
+    criado_por: currentUser.id,
+    criado_por_nome: currentUser.name
+  });
+
+  btn.disabled = false; btn.textContent = 'Salvar Cupom';
+
+  if (error) { toast('Erro ao salvar: '+error.message,'error'); return; }
+
+  toast(`Cupom ${fields.codigo} salvo`, 'success');
+  updateBadges();
+
+  const u = F('f-unidade').value;
+  ['f-nome','f-premio','f-subpremio','f-motivo','f-obs'].forEach(id => F(id).value = '');
+  F('f-codigo').value = generateCode(u);
+  F('f-codigo').dataset.auto = '1';
+  updatePreview();
+});
+
+// ── PNG ───────────────────────────────────────────────────────
+async function downloadVoucherPNG(voucherEl, filename) {
+  const orig = voucherEl.style.transform;
+  voucherEl.style.transform = 'scale(1)';
+  const wrap = voucherEl.parentElement;
+  const origStyle = wrap.getAttribute('style')||'';
+  wrap.style.cssText = 'height:900px;width:1240px;aspect-ratio:unset;';
+  try {
+    const canvas = await html2canvas(voucherEl, { width:1240, height:900, scale:2, backgroundColor:'#FAF7F2', useCORS:true });
+    Object.assign(document.createElement('a'), { download:filename, href:canvas.toDataURL('image/png') }).click();
+    toast('PNG baixado','success');
+  } catch(e) { toast('Erro ao gerar PNG','error'); console.error(e); }
+  finally {
+    voucherEl.style.transform = orig;
+    wrap.setAttribute('style', origStyle);
+    scaleVoucher(wrap, voucherEl);
+  }
+}
+
+F('btn-png').addEventListener('click', () => {
+  downloadVoucherPNG(F('voucher'), `cupom-${F('f-codigo').value||'preview'}-${(F('f-nome').value||'sem-nome').replace(/[^\w]+/g,'-')}.png`);
+});
+
+// ── LIST ──────────────────────────────────────────────────────
+async function renderList() {
+  const q = F('filter-search').value.toLowerCase().trim();
+  const fm = F('filter-motivo').value;
+  const fu = F('filter-unidade').value;
+  const fs = F('filter-status').value;
+  const fc = F('filter-criador').value;
+
+  let query = db.from('cupons').select('*').order('criado_em', {ascending:false});
+  if (fm) query = query.eq('motivo', fm);
+  if (fu) query = query.eq('unidade', fu);
+  if (fc) query = query.eq('criado_por', fc);
+
+  const { data: all } = await db.from('cupons').select('*',{count:'exact',head:false}).order('criado_em',{ascending:false});
+  const { data: list } = await query;
+  if (!list) return;
+
+  // Client-side filters
+  let filtered = list.filter(c => {
+    if (q && !(c.nome.toLowerCase().includes(q) || c.codigo.toLowerCase().includes(q))) return false;
+    if (fs === 'valido' && isExpired(c.validade)) return false;
+    if (fs === 'expirado' && !isExpired(c.validade)) return false;
+    return true;
+  });
+
+  const allList = all || [];
+  F('s-total').textContent = allList.length;
+  F('s-validos').textContent = allList.filter(c=>!isExpired(c.validade)).length;
+  F('s-expirados').textContent = allList.filter(c=>isExpired(c.validade)).length;
+  const ym = todayISO().slice(0,7);
+  F('s-mes').textContent = allList.filter(c=>c.emissao&&c.emissao.startsWith(ym)).length;
+
+  // Populate creator filter
+  const { data: users } = await db.from('usuarios').select('id, name').eq('active',true);
+  const sel = F('filter-criador');
+  const curVal = sel.value;
+  sel.innerHTML = '<option value="">Todos criadores</option>' + (users||[]).map(u=>`<option value="${escapeHTML(u.id)}">${escapeHTML(u.name)}</option>`).join('');
+  sel.value = curVal;
+
+  const container = F('list-container');
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="empty"><div class="empty-title">${allList.length===0?'Nenhum cupom criado ainda':'Nenhum cupom encontrado'}</div><div class="empty-sub">${allList.length===0?'Crie seu primeiro cupom na aba "Criar Cupom"':'Tente ajustar os filtros'}</div></div>`;
+    return;
+  }
+
+  const isAdmin = currentUser?.role === 'admin';
+  const rows = filtered.map(c => {
+    const expired = isExpired(c.validade);
+    const canDel = isAdmin || c.criado_por === currentUser?.id;
+    return `<tr>
+      <td><span class="code-pill">${escapeHTML(c.codigo)}</span></td>
+      <td><strong>${escapeHTML(c.nome)}</strong></td>
+      <td>${escapeHTML(c.premio)}${c.subpremio?` <small style="color:var(--gray)">(${escapeHTML(c.subpremio)})</small>`:''}</td>
+      <td><span class="motivo-pill ${motivoClass(c.motivo)}">${escapeHTML(c.motivo)}</span></td>
+      <td>${escapeHTML(c.unidade)}</td>
+      <td>${fmtDate(c.emissao)}</td>
+      <td>${fmtDate(c.validade)}</td>
+      <td><span class="status-pill ${expired?'status-expirado':'status-valido'}">${expired?'Expirado':'Válido'}</span></td>
+      ${isAdmin?`<td>${escapeHTML(c.criado_por_nome||'—')}</td>`:''}
+      <td class="row-actions">
+        <button onclick="viewCoupon('${c.id}')">Ver</button>
+        <button onclick="downloadCoupon('${c.id}')">PNG</button>
+        <button class="del" onclick="deleteCoupon('${c.id}')" ${canDel?'':'disabled'}>Excluir</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  container.innerHTML = `<table>
+    <thead><tr>
+      <th>Código</th><th>Cliente</th><th>Prêmio</th><th>Motivo</th>
+      <th>Unidade</th><th>Emissão</th><th>Validade</th><th>Status</th>
+      ${isAdmin?'<th>Criado por</th>':''}
+      <th></th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+['filter-search','filter-motivo','filter-unidade','filter-status','filter-criador'].forEach(id => {
+  F(id).addEventListener('input', renderList);
+  F(id).addEventListener('change', renderList);
+});
+
+async function updateBadges() {
+  const { count: cc } = await db.from('cupons').select('*',{count:'exact',head:true});
+  F('countBadge').textContent = cc||0;
+  if (currentUser?.role==='admin') {
+    const { count: uc } = await db.from('usuarios').select('*',{count:'exact',head:true});
+    F('userCountBadge').textContent = uc||0;
+  }
+}
+
+// ── VOUCHER MODAL ─────────────────────────────────────────────
+function buildVoucherHTML(c) {
+  return `<div class="voucher-left">
+    <div class="voucher-logo"><span class="l1">Studio</span><span class="l2">LU RECH</span></div>
+    <div class="voucher-tag">Yay! Você ganhou um</div>
+    <div class="voucher-title"><span class="beauty">Beauty</span><span class="voucher-word">voucher</span></div>
+    <div class="ribbon">
+      <span class="dot-l"></span>
+      <span>${escapeHTML(c.premio.toUpperCase())}</span>${c.subpremio?`<span class="ribbon-sub">(${escapeHTML(c.subpremio)})</span>`:''}
+      <span class="dot-r"></span>
+    </div>
+    <div class="voucher-greeting"><b>${escapeHTML(c.nome)}</b>, você merece <b>mais do que beleza!</b></div>
+    <div class="voucher-body">
+      Utilizável em nossa unidade do Studio Lu Rech <b>${escapeHTML(c.unidade)}</b> sob marcação prévia,<br>
+      válido para ser utilizado até <b>${fmtDate(c.validade)}</b>.<br>
+      Entre em contato com uma de nossas recepções e garanta o seu horário.<br>
+      Mal podemos esperar para recebê-la por aqui! Aproveite!
+    </div>
+    <div class="voucher-code"><span>Cupom: </span><span>${escapeHTML(c.codigo)}</span></div>
+  </div><div class="voucher-right"></div>`;
+}
+
+window.viewCoupon = async function(id) {
+  const { data: c } = await db.from('cupons').select('*').eq('id',id).single();
+  if (!c) return;
+  F('modal-title').textContent = `Cupom ${c.codigo} — ${c.nome}`;
+  F('modal-voucher').innerHTML = buildVoucherHTML(c);
+  F('modal-voucher').dataset.cupomId = id;
+  F('modal').classList.add('show');
+  setTimeout(() => scaleVoucher(F('modal-wrap'), F('modal-voucher')), 50);
+};
+window.closeModal = () => F('modal').classList.remove('show');
+F('modal').addEventListener('click', e => { if (e.target.id==='modal') closeModal(); });
+F('modal-png').addEventListener('click', async () => {
+  const id = F('modal-voucher').dataset.cupomId;
+  const { data: c } = await db.from('cupons').select('*').eq('id',id).single();
+  if (!c) return;
+  downloadVoucherPNG(F('modal-voucher'), `cupom-${c.codigo}-${c.nome.replace(/[^\w]+/g,'-')}.png`);
+});
+
+window.downloadCoupon = async function(id) {
+  const { data: c } = await db.from('cupons').select('*').eq('id',id).single();
+  if (!c) return;
+  const temp = document.createElement('div');
+  temp.style.cssText = 'position:fixed;left:-99999px;top:0;';
+  temp.innerHTML = `<div class="voucher" style="transform:none;">${buildVoucherHTML(c)}</div>`;
+  document.body.appendChild(temp);
+  try {
+    const canvas = await html2canvas(temp.querySelector('.voucher'), {width:1240,height:900,scale:2,backgroundColor:'#FAF7F2',useCORS:true});
+    Object.assign(document.createElement('a'),{download:`cupom-${c.codigo}-${c.nome.replace(/[^\w]+/g,'-')}.png`,href:canvas.toDataURL('image/png')}).click();
+    toast('PNG baixado','success');
+  } catch(e) { toast('Erro ao gerar PNG','error'); }
+  finally { document.body.removeChild(temp); }
+};
+
+window.deleteCoupon = async function(id) {
+  const { data: c } = await db.from('cupons').select('*').eq('id',id).single();
+  if (!c) return;
+  if (currentUser?.role!=='admin' && c.criado_por!==currentUser?.id) { toast('Sem permissão','error'); return; }
+  if (!confirm(`Excluir o cupom ${c.codigo} (${c.nome})?`)) return;
+  await db.from('cupons').delete().eq('id',id);
+  toast('Cupom excluído','success');
+  updateBadges();
+  renderList();
+};
+
+// ── CSV ───────────────────────────────────────────────────────
+F('btn-export').addEventListener('click', async () => {
+  const { data: list } = await db.from('cupons').select('*').order('criado_em',{ascending:false});
+  if (!list?.length) { toast('Nenhum cupom para exportar'); return; }
+  const esc = v => `"${String(v??'').replace(/"/g,'""')}"`;
+  const lines = [['Código','Cliente','Prêmio','Subtítulo','Motivo','Unidade','Emissão','Validade','Status','Criado por','Observações','Criado em'].map(esc).join(',')];
+  list.forEach(c => lines.push([c.codigo,c.nome,c.premio,c.subpremio,c.motivo,c.unidade,fmtDate(c.emissao),fmtDate(c.validade),isExpired(c.validade)?'Expirado':'Válido',c.criado_por_nome||'',c.obs,new Date(c.criado_em).toLocaleString('pt-BR')].map(esc).join(',')));
+  const blob = new Blob(['﻿'+lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  Object.assign(document.createElement('a'),{href:url,download:`cupons-studio-lurech-${todayISO()}.csv`}).click();
+  URL.revokeObjectURL(url);
+  toast(`${list.length} cupons exportados`,'success');
+});
+
+// ── USERS ─────────────────────────────────────────────────────
+F('btn-add-user').addEventListener('click', async () => {
+  if (currentUser?.role !== 'admin') return;
+  const name = F('nu-name').value.trim();
+  const username = F('nu-username').value.trim().toLowerCase();
+  const pwd = F('nu-password').value;
+  const role = F('nu-role').value;
+  const unidade = F('nu-unidade').value;
+
+  if (!name||!username||!pwd) { toast('Preencha nome, usuário e senha','error'); return; }
+  if (!/^[a-z0-9._-]{3,20}$/.test(username)) { toast('Usuário inválido: 3–20 chars, letras minúsculas, números, ponto, hífen ou underscore','error'); return; }
+  if (pwd.length < 6) { toast('Senha deve ter pelo menos 6 caracteres','error'); return; }
+
+  const { count } = await db.from('usuarios').select('*',{count:'exact',head:true}).eq('username',username);
+  if (count > 0) { toast('Nome de usuário já existe','error'); return; }
+
+  const hash = await hashPassword(pwd);
+  const { error } = await db.from('usuarios').insert({ username, name, password_hash:hash, role, unidade:unidade||'', active:true, criado_por:currentUser.id });
+  if (error) { toast('Erro ao criar usuário: '+error.message,'error'); return; }
+
+  ['nu-name','nu-username','nu-password'].forEach(id => F(id).value='');
+  F('nu-role').value='user'; F('nu-unidade').value='';
+  toast(`Usuário ${name} criado`,'success');
+  updateBadges();
+  renderUsers();
+});
+
+async function renderUsers() {
+  if (currentUser?.role !== 'admin') return;
+  const { data: users } = await db.from('usuarios').select('*').order('criado_em',{ascending:true});
+  if (!users) return;
+  const adminCount = users.filter(u=>u.role==='admin'&&u.active).length;
+  const rows = users.map(u => {
+    const isMe = u.id === currentUser.id;
+    const cannotDeact = u.role==='admin' && adminCount<=1 && u.active;
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:10px;">
+        <div class="user-avatar" style="width:32px;height:32px;font-size:12px;">${initials(u.name)}</div>
+        <div><div style="font-weight:600;">${escapeHTML(u.name)} ${isMe?'<small style="color:var(--gray);font-weight:400">(você)</small>':''}</div>
+        <div style="font-size:11px;color:var(--gray);">@${escapeHTML(u.username)}</div></div>
+      </div></td>
+      <td><span class="role-pill role-${u.role}">${u.role==='admin'?'Administrador':'Usuário'}</span></td>
+      <td>${escapeHTML(u.unidade||'—')}</td>
+      <td><span class="status-pill ${u.active?'status-valido':'status-inativo'}">${u.active?'Ativo':'Inativo'}</span></td>
+      <td>${fmtDate((u.criado_em||'').slice(0,10))}</td>
+      <td class="row-actions">
+        <button onclick="changePassword('${u.id}')">Trocar senha</button>
+        <button onclick="toggleUserActive('${u.id}')" ${cannotDeact||isMe?'disabled':''}>
+          ${u.active?'Desativar':'Ativar'}
+        </button>
+        <button class="del" onclick="deleteUser('${u.id}')" ${isMe||cannotDeact?'disabled':''}>Excluir</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  F('users-list').innerHTML = `<table style="border-radius:0;border:none;">
+    <thead><tr><th>Usuário</th><th>Função</th><th>Unidade</th><th>Status</th><th>Criado em</th><th></th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+window.toggleUserActive = async function(id) {
+  const { data: u } = await db.from('usuarios').select('*').eq('id',id).single();
+  if (!u || u.id===currentUser.id) { toast('Não pode desativar a própria conta','error'); return; }
+  const { count } = await db.from('usuarios').select('*',{count:'exact',head:true}).eq('role','admin').eq('active',true);
+  if (u.role==='admin' && u.active && count<=1) { toast('Deve haver pelo menos um administrador ativo','error'); return; }
+  await db.from('usuarios').update({active:!u.active}).eq('id',id);
+  toast(`Usuário ${u.active?'desativado':'ativado'}`,'success');
+  renderUsers();
+};
+
+window.deleteUser = async function(id) {
+  const { data: u } = await db.from('usuarios').select('*').eq('id',id).single();
+  if (!u || u.id===currentUser.id) { toast('Não pode excluir a própria conta','error'); return; }
+  const { count } = await db.from('usuarios').select('*',{count:'exact',head:true}).eq('role','admin').eq('active',true);
+  if (u.role==='admin' && u.active && count<=1) { toast('Deve haver pelo menos um administrador','error'); return; }
+  if (!confirm(`Excluir definitivamente ${u.name}?`)) return;
+  await db.from('usuarios').delete().eq('id',id);
+  toast('Usuário excluído','success');
+  updateBadges();
+  renderUsers();
+};
+
+window.changePassword = async function(id) {
+  const { data: u } = await db.from('usuarios').select('*').eq('id',id).single();
+  if (!u) return;
+  F('pwd-title').textContent = `Trocar senha — ${u.name}`;
+  F('pwd-new').value = '';
+  F('pwd-new').dataset.userId = id;
+  F('modal-pwd').classList.add('show');
+  setTimeout(()=>F('pwd-new').focus(),100);
+};
+window.closePwdModal = () => F('modal-pwd').classList.remove('show');
+F('modal-pwd').addEventListener('click',e=>{if(e.target.id==='modal-pwd')closePwdModal();});
+F('btn-change-pwd').addEventListener('click', async () => {
+  const newPwd = F('pwd-new').value;
+  const userId = F('pwd-new').dataset.userId;
+  if (newPwd.length<6) { toast('Senha deve ter pelo menos 6 caracteres','error'); return; }
+  const hash = await hashPassword(newPwd);
+  await db.from('usuarios').update({password_hash:hash}).eq('id',userId);
+  if (userId===currentUser.id) currentUser.password_hash=hash;
+  closePwdModal();
+  toast('Senha alterada','success');
+});
+
+// ── INIT ─────────────────────────────────────────────────────
+setupScaling('voucher-wrap','voucher');
+setupScaling('modal-wrap','modal-voucher');
+bootstrapAuth();
+</script>
+</body>
+</html>

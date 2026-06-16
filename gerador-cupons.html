@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -1309,6 +1310,359 @@ F('btn-change-pwd').addEventListener('click', async () => {
   closePwdModal();
   toast('Senha alterada','success');
 });
+
+// ── FINANCEIRO ───────────────────────────────────────────────
+(function(){
+  let dadosForms = null, dadosTrinks = null, divergencias = [], todosResultados = [];
+
+  // ---- Normalização ----
+  function normNome(s){
+    if(!s) return '';
+    return s.toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g,'')
+      .replace(/[^a-z\s]/g,'').trim();
+  }
+  function normUnidade(s){
+    if(!s) return '';
+    const m = {
+      'barra prime':'barra','barra':'barra','bar':'barra',
+      'moema':'moema','moe':'moema',
+      'copacabana':'copa','copa':'copa','cop':'copa',
+      'leblon':'leblon','leb':'leblon',
+      'blue center':'blue','blue':'blue','blu':'blue','blueCenter':'blue'
+    };
+    const k = s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+    return m[k] || k;
+  }
+  function normMotivo(s){
+    if(!s) return '';
+    return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+  }
+  function extrairPct(s){
+    if(!s && s!==0) return null;
+    if(typeof s === 'number') return s;
+    const m = String(s).match(/(\d+([.,]\d+)?)/);
+    return m ? parseFloat(m[1].replace(',','.')) : null;
+  }
+  function normData(s){
+    if(!s) return '';
+    // tenta vários formatos
+    if(typeof s === 'number'){
+      // serial do Excel
+      const d = new Date(Math.round((s-25569)*86400*1000));
+      return d.toISOString().slice(0,10);
+    }
+    const str = String(s).trim();
+    // dd/mm/yyyy ou dd/mm/yy
+    let m = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+    if(m){
+      let y = m[3]; if(y.length===2) y='20'+y;
+      return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+    }
+    // yyyy-mm-dd
+    if(/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0,10);
+    const d = new Date(str);
+    if(!isNaN(d)) return d.toISOString().slice(0,10);
+    return str;
+  }
+
+  // ---- Similaridade de nomes (Jaro-Winkler simplificado) ----
+  function similaridade(a, b){
+    a = normNome(a); b = normNome(b);
+    if(a===b) return 1;
+    if(!a||!b) return 0;
+    // verifica se um contém o outro
+    if(a.includes(b)||b.includes(a)) return 0.92;
+    // verifica palavras em comum
+    const wa = a.split(/\s+/), wb = b.split(/\s+/);
+    const comuns = wa.filter(w=>w.length>2&&wb.includes(w)).length;
+    const totalMax = Math.max(wa.length,wb.length);
+    if(comuns/totalMax>=0.5) return 0.85;
+    // Bigrama
+    function bigrams(str){ const bg=new Set(); for(let i=0;i<str.length-1;i++) bg.add(str.slice(i,i+2)); return bg; }
+    const ba=bigrams(a.replace(/\s/g,'')), bb=bigrams(b.replace(/\s/g,''));
+    let inter=0; ba.forEach(g=>{if(bb.has(g))inter++;});
+    return (2*inter)/(ba.size+bb.size) || 0;
+  }
+
+  // ---- Parse de arquivo ----
+  async function parseArquivo(file){
+    return new Promise((resolve,reject)=>{
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const wb = XLSX.read(e.target.result, {type:'array', cellDates:false});
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const dados = XLSX.utils.sheet_to_json(ws,{defval:''});
+          resolve(dados);
+        } catch(err){ reject(err); }
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  // ---- Mapear colunas do Forms ----
+  function mapForms(row){
+    // detecta os nomes de colunas de forma flexível
+    const keys = Object.keys(row);
+    const find = (...terms) => keys.find(k => terms.some(t => k.toLowerCase().includes(t.toLowerCase()))) || '';
+    return {
+      raw: row,
+      nome:     String(row[find('nome da cliente','nome cliente','cliente')] || '').trim(),
+      telefone: String(row[find('telefone')] || '').trim(),
+      dataApp:  normData(row[find('data da aplica','data aplica','data do desconto','data')] || ''),
+      motivo:   String(row[find('motivo')] || '').trim(),
+      pct:      extrairPct(row[find('porcentagem','desconto oferec','% oferec','percent')] || ''),
+      unidade:  normUnidade(String(row[find('unidade')] || '')),
+      liberadoPor: String(row[find('liberado por','autorizado por','quem liberou','nome completo')] || '').trim(),
+    };
+  }
+
+  // ---- Mapear colunas do Trinks ----
+  function mapTrinks(row){
+    const keys = Object.keys(row);
+    const find = (...terms) => keys.find(k => terms.some(t => k.toLowerCase().includes(t.toLowerCase()))) || '';
+    const totalServ = parseFloat(String(row[find('total (r$) servi','total r$ servi','total servi','total (r$)')] || '0').replace(/[^\d,.-]/g,'').replace(',','.')) || 0;
+    const descBruto = parseFloat(String(row[find('desconto')] || '0').replace(/[^\d,.-]/g,'').replace(',','.')) || 0;
+    const descVal = Math.abs(descBruto);
+    const pctReal = totalServ > 0 ? Math.round((descVal/totalServ)*1000)/10 : 0;
+    return {
+      raw: row,
+      data:       normData(row[find('data de atend','data atend','data')] || ''),
+      unidade:    normUnidade(String(row[find('unidade')] || '')),
+      nome:       String(row[find('nome do cliente','nome cliente','cliente')] || '').trim(),
+      totalServ,
+      descVal,
+      pctReal,
+      motivo:     String(row[find('motivo desconto','motivo')] || '').trim(),
+      quemFechou: String(row[find('quem fechou','fechou a conta','atendente')] || '').trim(),
+      temDesconto: descVal > 0,
+    };
+  }
+
+  // ---- Cruzamento principal ----
+  function cruzar(forms, trinks){
+    const fRows = forms.map(mapForms).filter(r=>r.nome);
+    const tRows = trinks.map(mapTrinks).filter(r=>r.nome);
+    const divs = [];
+    const tUsados = new Set();
+
+    fRows.forEach((f,fi)=>{
+      // busca match no Trinks
+      let melhor = null, melhorScore = 0;
+      tRows.forEach((t,ti)=>{
+        const sNome = similaridade(f.nome, t.nome);
+        const sData = f.dataApp && t.data ? (f.dataApp===t.data?1:(Math.abs(new Date(f.dataApp)-new Date(t.data))<3*86400000?0.7:0)):0.5;
+        const sUnid = f.unidade && t.unidade ? (f.unidade===t.unidade?1:0) : 0.5;
+        const score = sNome*0.5 + sData*0.3 + sUnid*0.2;
+        if(score>melhorScore){ melhorScore=score; melhor={t,ti}; }
+      });
+
+      const matched = melhorScore >= 0.6 ? melhor : null;
+
+      if(!matched){
+        // Tipo 1: Forms sem Trinks
+        divs.push({
+          tipo:'1',
+          tipodesc:'Desconto no Forms, mas NÃO no Trinks',
+          cliente: f.nome,
+          data: f.dataApp,
+          unidade: f.unidade,
+          formsPct: f.pct!=null?f.pct+'%':'—',
+          formsMotivo: f.motivo,
+          formsLiberadoPor: f.liberadoPor,
+          trinksPct:'—', trinksMotivo:'—', trinksQuemFechou:'—',
+          obs:`Desconto de ${f.pct!=null?f.pct+'%':'?'} autorizado por ${f.liberadoPor||'?'} (${f.motivo||'?'}) não encontrado no Trinks`
+        });
+      } else {
+        const {t,ti} = matched;
+        tUsados.add(ti);
+        if(!t.temDesconto){
+          // Tipo 1 variante: tem match mas sem desconto no Trinks
+          divs.push({
+            tipo:'1', tipodesc:'Desconto no Forms, mas NÃO no Trinks',
+            cliente:f.nome, data:f.dataApp, unidade:f.unidade,
+            formsPct:f.pct!=null?f.pct+'%':'—', formsMotivo:f.motivo, formsLiberadoPor:f.liberadoPor,
+            trinksPct:'0%', trinksMotivo:'sem desconto', trinksQuemFechou:t.quemFechou,
+            obs:`Forms registra ${f.pct!=null?f.pct+'%':'desconto'} mas Trinks não aplicou nenhum desconto`
+          });
+        } else {
+          // Tipo 3: divergência de porcentagem
+          if(f.pct!=null && Math.abs(f.pct - t.pctReal)>1){
+            divs.push({
+              tipo:'3', tipodesc:'Divergência de porcentagem',
+              cliente:f.nome, data:f.dataApp, unidade:f.unidade,
+              formsPct:f.pct+'%', formsMotivo:f.motivo, formsLiberadoPor:f.liberadoPor,
+              trinksPct:t.pctReal+'%', trinksMotivo:t.motivo, trinksQuemFechou:t.quemFechou,
+              obs:`Forms autoriza ${f.pct}% mas Trinks aplicou ${t.pctReal}%`
+            });
+          }
+          // Tipo 4: divergência de motivo
+          if(f.motivo && t.motivo && normMotivo(f.motivo)!==normMotivo(t.motivo) && similaridade(f.motivo,t.motivo)<0.7){
+            divs.push({
+              tipo:'4', tipodesc:'Divergência de motivo',
+              cliente:f.nome, data:f.dataApp, unidade:f.unidade,
+              formsPct:f.pct!=null?f.pct+'%':'—', formsMotivo:f.motivo, formsLiberadoPor:f.liberadoPor,
+              trinksPct:t.pctReal+'%', trinksMotivo:t.motivo, trinksQuemFechou:t.quemFechou,
+              obs:`Motivo Forms: "${f.motivo}" vs Trinks: "${t.motivo}"`
+            });
+          }
+          // Tipo 5: divergência de quem liberou
+          if(f.liberadoPor && t.quemFechou && similaridade(f.liberadoPor,t.quemFechou)<0.7){
+            divs.push({
+              tipo:'5', tipodesc:'Divergência de quem liberou',
+              cliente:f.nome, data:f.dataApp, unidade:f.unidade,
+              formsPct:f.pct!=null?f.pct+'%':'—', formsMotivo:f.motivo, formsLiberadoPor:f.liberadoPor,
+              trinksPct:t.pctReal+'%', trinksMotivo:t.motivo, trinksQuemFechou:t.quemFechou,
+              obs:`Forms: liberado por "${f.liberadoPor}" / Trinks: fechado por "${t.quemFechou}"`
+            });
+          }
+        }
+      }
+    });
+
+    // Tipo 2: Trinks com desconto sem Forms
+    tRows.forEach((t,ti)=>{
+      if(!tUsados.has(ti) && t.temDesconto){
+        divs.push({
+          tipo:'2', tipodesc:'Desconto no Trinks, mas NÃO no Forms',
+          cliente:t.nome, data:t.data, unidade:t.unidade,
+          formsPct:'—', formsMotivo:'—', formsLiberadoPor:'—',
+          trinksPct:t.pctReal+'%', trinksMotivo:t.motivo, trinksQuemFechou:t.quemFechou,
+          obs:`Desconto de ${t.pctReal}% aplicado no Trinks sem registro no Forms`
+        });
+      }
+    });
+
+    return { divs, fRows, tRows };
+  }
+
+  // ---- Renderiza tabela ----
+  function renderTabela(lista){
+    if(!lista.length){
+      document.getElementById('fin-table-container').innerHTML =
+        '<div style="padding:40px;text-align:center;color:var(--gray);">Nenhuma divergência encontrada 🎉</div>';
+      return;
+    }
+    const cores = {'1':'#8B2A2A','2':'#7A4A00','3':'#1a4a7a','4':'#3a1a7a','5':'#1a7a4a'};
+    const rows = lista.map(d=>`<tr>
+      <td style="font-weight:600;">${escapeHTML(d.cliente)}</td>
+      <td>${escapeHTML(d.data)}</td>
+      <td>${escapeHTML(d.unidade)}</td>
+      <td><span style="background:${cores[d.tipo]||'#555'};color:white;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;">Tipo ${d.tipo}</span><br><span style="font-size:11px;color:var(--gray);">${escapeHTML(d.tipodesc)}</span></td>
+      <td style="font-size:12px;">${escapeHTML(d.formsPct)}<br><span style="color:var(--gray);">${escapeHTML(d.formsMotivo)}</span><br><span style="color:var(--gray);">${escapeHTML(d.formsLiberadoPor)}</span></td>
+      <td style="font-size:12px;">${escapeHTML(d.trinksPct)}<br><span style="color:var(--gray);">${escapeHTML(d.trinksMotivo)}</span><br><span style="color:var(--gray);">${escapeHTML(d.trinksQuemFechou)}</span></td>
+      <td style="font-size:12px;color:#555;">${escapeHTML(d.obs)}</td>
+    </tr>`).join('');
+    document.getElementById('fin-table-container').innerHTML = `
+      <table style="border-radius:0;border:none;font-size:13px;">
+        <thead><tr>
+          <th>Cliente</th><th>Data</th><th>Unidade</th><th>Tipo de Divergência</th>
+          <th>Forms (%, motivo, liberado por)</th><th>Trinks (%, motivo, quem fechou)</th><th>Observação</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  // ---- Renderiza stats ----
+  function renderStats(fRows, tRows, divs){
+    const t1=divs.filter(d=>d.tipo==='1').length, t2=divs.filter(d=>d.tipo==='2').length;
+    const t3=divs.filter(d=>d.tipo==='3').length, t4=divs.filter(d=>d.tipo==='4').length, t5=divs.filter(d=>d.tipo==='5').length;
+    const totalMatch = fRows.length - t1;
+    const conformidade = fRows.length>0 ? Math.round((totalMatch/fRows.length)*100) : 0;
+    document.getElementById('fin-stats').innerHTML = `
+      <div class="stat-card"><div class="stat-num">${fRows.length}</div><div class="stat-label">Registros Forms</div></div>
+      <div class="stat-card"><div class="stat-num">${tRows.length}</div><div class="stat-label">Registros Trinks</div></div>
+      <div class="stat-card" style="border-top:3px solid #8B2A2A;"><div class="stat-num" style="color:#8B2A2A;">${t1+t2}</div><div class="stat-label">Sem correspondência</div></div>
+      <div class="stat-card" style="border-top:3px solid #1a4a7a;"><div class="stat-num" style="color:#1a4a7a;">${t3+t4+t5}</div><div class="stat-label">Divergências de dados</div></div>
+      <div class="stat-card" style="border-top:3px solid #2A6A3A;"><div class="stat-num" style="color:#2A6A3A;">${conformidade}%</div><div class="stat-label">Taxa de conformidade</div></div>
+      <div class="stat-card"><div class="stat-num">${divs.length}</div><div class="stat-label">Total de divergências</div></div>`;
+  }
+
+  function renderFinanceiro(){
+    // já montado estaticamente no HTML, só ativa os eventos se ainda não foram
+  }
+  window.renderFinanceiro = renderFinanceiro;
+
+  // ---- Setup drag & drop e upload ----
+  function setupUpload(dropId, inputId, statusId, onLoad){
+    const drop = document.getElementById(dropId);
+    const input = document.getElementById(inputId);
+    const status = document.getElementById(statusId);
+    if(!drop) return;
+    drop.addEventListener('click',()=>input.click());
+    input.addEventListener('change',()=>{ if(input.files[0]) handleFile(input.files[0]); });
+    drop.addEventListener('dragover',e=>{e.preventDefault();drop.style.borderColor='var(--gold)';});
+    drop.addEventListener('dragleave',()=>{drop.style.borderColor='var(--line)';});
+    drop.addEventListener('drop',e=>{
+      e.preventDefault(); drop.style.borderColor='var(--line)';
+      if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    });
+    async function handleFile(file){
+      status.textContent = '⏳ Lendo arquivo...';
+      try {
+        const dados = await parseArquivo(file);
+        onLoad(dados);
+        status.innerHTML = `<span style="color:#2A6A3A;">✓ ${dados.length} registros carregados — ${escapeHTML(file.name)}</span>`;
+        drop.style.borderColor='#2A6A3A';
+        verificarPronto();
+      } catch(e){
+        status.innerHTML = `<span style="color:#8B2A2A;">✗ Erro ao ler arquivo: ${e.message}</span>`;
+      }
+    }
+  }
+
+  function verificarPronto(){
+    document.getElementById('btn-cruzar').disabled = !(dadosForms && dadosTrinks);
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    setupUpload('drop-forms','file-forms','forms-status', d=>{ dadosForms=d; });
+    setupUpload('drop-trinks','file-trinks','trinks-status', d=>{ dadosTrinks=d; });
+
+    document.getElementById('btn-cruzar').addEventListener('click',()=>{
+      const {divs,fRows,tRows} = cruzar(dadosForms, dadosTrinks);
+      divergencias = divs;
+      todosResultados = divs;
+      renderStats(fRows, tRows, divs);
+      renderTabela(divs);
+      document.getElementById('fin-results').style.display='block';
+      document.getElementById('fin-results').scrollIntoView({behavior:'smooth',block:'start'});
+    });
+
+    document.getElementById('fin-filter-tipo').addEventListener('change', function(){
+      const v = this.value;
+      const filtrado = v ? todosResultados.filter(d=>d.tipo===v) : todosResultados;
+      renderTabela(filtrado);
+    });
+
+    document.getElementById('btn-export-fin').addEventListener('click',()=>{
+      if(!todosResultados.length){ toast('Nenhuma divergência para exportar','error'); return; }
+      const rows = todosResultados.map(d=>({
+        'Cliente': d.cliente,
+        'Data': d.data,
+        'Unidade': d.unidade,
+        'Tipo': 'Tipo '+d.tipo,
+        'Descrição': d.tipodesc,
+        'Forms — %': d.formsPct,
+        'Forms — Motivo': d.formsMotivo,
+        'Forms — Liberado por': d.formsLiberadoPor,
+        'Trinks — %': d.trinksPct,
+        'Trinks — Motivo': d.trinksMotivo,
+        'Trinks — Quem fechou': d.trinksQuemFechou,
+        'Observação': d.obs,
+      }));
+      const ws = XLSX.utils.json_to_sheet(rows);
+      ws['!cols'] = [20,12,12,8,35,10,20,20,10,20,20,40].map(w=>({wch:w}));
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Divergências');
+      const hoje = new Date().toISOString().slice(0,10);
+      XLSX.writeFile(wb, `divergencias-${hoje}.xlsx`);
+      toast('Excel exportado com sucesso','success');
+    });
+  });
+})();
 
 // ── INIT ─────────────────────────────────────────────────────
 setupScaling('voucher-wrap','voucher');

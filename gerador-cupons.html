@@ -275,6 +275,7 @@
       <button class="tab active" data-view="create">Criar Cupom</button>
       <button class="tab" data-view="list">Cupons Gerados <span class="badge" id="countBadge">0</span></button>
       <button class="tab admin-only" data-view="auth">Autorizações <span class="badge" id="authBadge" style="background:#8B2A2A;">0</span></button>
+      <button class="tab admin-only" data-view="financeiro">Financeiro</button>
       <button class="tab admin-only" data-view="users">Usuários <span class="badge" id="userCountBadge">0</span></button>
     </nav>
     <div class="user-chip">
@@ -416,6 +417,63 @@
         <p style="font-size:13px;color:#8C6A2A;">⚠️ Cupons com <b>50% ou mais</b> de desconto precisam da sua aprovação antes de serem gerados. Revise os detalhes abaixo e aprove ou rejeite cada solicitação.</p>
       </div>
       <div id="auth-container"><div class="empty"><div class="empty-title">Nenhuma solicitação pendente</div><div class="empty-sub">Quando um usuário solicitar um cupom com 50%+, aparecerá aqui.</div></div></div>
+    </section>
+
+    <!-- FINANCEIRO -->
+    <section class="view" id="view-financeiro">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+        <!-- Upload Forms -->
+        <div class="panel">
+          <h2>Planilha Google Forms</h2>
+          <div id="drop-forms" style="border:2px dashed var(--line);border-radius:10px;padding:28px 20px;text-align:center;cursor:pointer;transition:border-color .15s;background:var(--bg);">
+            <div style="font-size:28px;margin-bottom:8px;">📋</div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Arraste o arquivo aqui</div>
+            <div style="font-size:12px;color:var(--gray);">ou clique para selecionar (.csv ou .xlsx)</div>
+            <input type="file" id="file-forms" accept=".csv,.xlsx,.xls" style="display:none;">
+          </div>
+          <div id="forms-status" style="margin-top:10px;font-size:12px;color:var(--gray);min-height:18px;"></div>
+        </div>
+        <!-- Upload Trinks -->
+        <div class="panel">
+          <h2>Planilha Trinks</h2>
+          <div id="drop-trinks" style="border:2px dashed var(--line);border-radius:10px;padding:28px 20px;text-align:center;cursor:pointer;transition:border-color .15s;background:var(--bg);">
+            <div style="font-size:28px;margin-bottom:8px;">📊</div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Arraste o arquivo aqui</div>
+            <div style="font-size:12px;color:var(--gray);">ou clique para selecionar (.csv ou .xlsx)</div>
+            <input type="file" id="file-trinks" accept=".csv,.xlsx,.xls" style="display:none;">
+          </div>
+          <div id="trinks-status" style="margin-top:10px;font-size:12px;color:var(--gray);min-height:18px;"></div>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-bottom:24px;">
+        <button id="btn-cruzar" class="btn btn-primary" style="padding:14px 40px;font-size:15px;max-width:280px;" disabled>Cruzar Dados</button>
+      </div>
+
+      <!-- Resultados -->
+      <div id="fin-results" style="display:none;">
+        <!-- Stats -->
+        <div class="stats" style="grid-template-columns:repeat(6,1fr);margin-bottom:18px;" id="fin-stats"></div>
+
+        <!-- Divergências -->
+        <div class="panel" style="padding:0;">
+          <div style="padding:16px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;">
+            <h2 style="margin:0;padding:0;border:none;">Divergências encontradas</h2>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <select id="fin-filter-tipo" style="padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:12px;background:white;">
+                <option value="">Todos os tipos</option>
+                <option value="1">Desconto não aplicado no Trinks</option>
+                <option value="2">Desconto sem autorização no Forms</option>
+                <option value="3">Divergência de porcentagem</option>
+                <option value="4">Divergência de motivo</option>
+                <option value="5">Divergência de quem liberou</option>
+              </select>
+              <button id="btn-export-fin" class="btn btn-secondary" style="flex:0 0 auto;padding:9px 16px;font-size:12px;">↓ Exportar Excel</button>
+            </div>
+          </div>
+          <div id="fin-table-container" style="overflow-x:auto;"></div>
+        </div>
+      </div>
     </section>
 
     <!-- USERS -->
@@ -1152,13 +1210,20 @@ async function renderUsers() {
   const { data: users } = await db.from('usuarios').select('*').order('criado_em',{ascending:true});
   if (!users) return;
   const adminCount = users.filter(u=>u.role==='admin'&&u.active).length;
+  const isFounder = !!currentUser.is_founder;
   const rows = users.map(u => {
     const isMe = u.id === currentUser.id;
     const cannotDeact = u.role==='admin' && adminCount<=1 && u.active;
+    const isTarget = u.is_founder; // não pode mexer no próprio fundador
+    const roleBtn = isFounder && !isMe && !isTarget
+      ? `<button onclick="toggleUserRole('${u.id}')" style="color:${u.role==='admin'?'#8B2A2A':'#2A6A3A'};">
+           ${u.role==='admin'?'Remover admin':'Tornar admin'}
+         </button>`
+      : '';
     return `<tr>
       <td><div style="display:flex;align-items:center;gap:10px;">
         <div class="user-avatar" style="width:32px;height:32px;font-size:12px;">${initials(u.name)}</div>
-        <div><div style="font-weight:600;">${escapeHTML(u.name)} ${isMe?'<small style="color:var(--gray);font-weight:400">(você)</small>':''}</div>
+        <div><div style="font-weight:600;">${escapeHTML(u.name)} ${isMe?'<small style="color:var(--gray);font-weight:400">(você)</small>':''}${u.is_founder?'<small style="color:var(--gold);font-weight:600;margin-left:4px;">★ Fundador</small>':''}</div>
         <div style="font-size:11px;color:var(--gray);">@${escapeHTML(u.username)}</div></div>
       </div></td>
       <td><span class="role-pill role-${u.role}">${u.role==='admin'?'Administrador':'Usuário'}</span></td>
@@ -1167,10 +1232,11 @@ async function renderUsers() {
       <td>${fmtDate((u.criado_em||'').slice(0,10))}</td>
       <td class="row-actions">
         <button onclick="changePassword('${u.id}')">Trocar senha</button>
-        <button onclick="toggleUserActive('${u.id}')" ${cannotDeact||isMe?'disabled':''}>
+        ${roleBtn}
+        <button onclick="toggleUserActive('${u.id}')" ${cannotDeact||isMe||isTarget?'disabled':''}>
           ${u.active?'Desativar':'Ativar'}
         </button>
-        <button class="del" onclick="deleteUser('${u.id}')" ${isMe||cannotDeact?'disabled':''}>Excluir</button>
+        <button class="del" onclick="deleteUser('${u.id}')" ${isMe||cannotDeact||isTarget?'disabled':''}>Excluir</button>
       </td>
     </tr>`;
   }).join('');
@@ -1188,6 +1254,25 @@ window.toggleUserActive = async function(id) {
   if (u.role==='admin' && u.active && count<=1) { toast('Deve haver pelo menos um administrador ativo','error'); return; }
   await db.from('usuarios').update({active:!u.active}).eq('id',id);
   toast(`Usuário ${u.active?'desativado':'ativado'}`,'success');
+  renderUsers();
+};
+
+window.toggleUserRole = async function(id) {
+  const { data: u } = await db.from('usuarios').select('*').eq('id',id).single();
+  if (!u) return;
+  if (u.is_founder) { toast('Não é possível alterar o papel do fundador','error'); return; }
+  if (!currentUser.is_founder) { toast('Apenas o fundador pode alterar funções','error'); return; }
+  if (u.role==='admin') {
+    const { count } = await db.from('usuarios').select('*',{count:'exact',head:true}).eq('role','admin').eq('active',true);
+    if (count<=1) { toast('Deve haver pelo menos um administrador ativo','error'); return; }
+    if (!confirm(`Remover acesso de administrador de ${u.name}?`)) return;
+    await db.from('usuarios').update({role:'user'}).eq('id',id);
+    toast(`${u.name} agora é Usuário comum`,'success');
+  } else {
+    if (!confirm(`Conceder acesso de administrador para ${u.name}?`)) return;
+    await db.from('usuarios').update({role:'admin'}).eq('id',id);
+    toast(`${u.name} agora é Administrador`,'success');
+  }
   renderUsers();
 };
 

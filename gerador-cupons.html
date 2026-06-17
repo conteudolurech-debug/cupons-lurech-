@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -298,6 +298,7 @@
           <div class="field"><label>Nome da cliente *</label><input type="text" id="f-nome" placeholder="Ex: Isadora Leão" maxlength="60"></div>
           <div class="field"><label>Prêmio / Valor do desconto *</label><input type="text" id="f-premio" placeholder="Ex: VALE UM DRY&amp;GO ou 20% DE DESCONTO" maxlength="40"></div>
           <div class="field"><label>Subtítulo do prêmio <span class="opt">(opcional)</span></label><input type="text" id="f-subpremio" placeholder="Ex: Escova" maxlength="30"></div>
+          <div class="field"><label>Desconto % <span class="opt">(opcional)</span></label><input type="text" id="f-desconto" placeholder="Ex: 10%, 20%, 50%" maxlength="10"></div>
           <div class="field">
             <label>Motivo do cupom *</label>
             <select id="f-motivo">
@@ -772,7 +773,7 @@ function updatePreview() {
     sol.style.display = 'block';
   }
 }
-['f-nome','f-premio','f-subpremio','f-motivo','f-unidade','f-emissao','f-validade','f-codigo','f-obs'].forEach(id => {
+['f-nome','f-premio','f-subpremio','f-desconto','f-motivo','f-unidade','f-emissao','f-validade','f-codigo','f-obs'].forEach(id => {
   F(id).addEventListener('input', updatePreview);
   F(id).addEventListener('change', updatePreview);
 });
@@ -814,7 +815,7 @@ updatePreview();
 // ── SAVE COUPON ───────────────────────────────────────────────
 F('btn-clear').addEventListener('click', () => {
   if (!confirm('Limpar todos os campos?')) return;
-  ['f-nome','f-premio','f-subpremio','f-obs'].forEach(id => F(id).value = '');
+  ['f-nome','f-premio','f-subpremio','f-desconto','f-obs'].forEach(id => F(id).value = '');
   F('f-motivo').value = '';
   F('f-unidade').value = currentUser?.unidade || '';
   F('f-emissao').value = todayISO();
@@ -849,6 +850,7 @@ F('btn-save').addEventListener('click', async () => {
   const payload = {
     ...fields,
     subpremio: F('f-subpremio').value.trim(),
+    desconto: F('f-desconto').value.trim(),
     obs: F('f-obs').value.trim(),
     percentual,
     solicitado_por: currentUser.id,

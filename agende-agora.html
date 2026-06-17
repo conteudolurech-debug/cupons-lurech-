@@ -1,0 +1,290 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agende Agora — Studio Lu Rech</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #B48132;
+    --gold-dark: #8B6020;
+    --black: #000000;
+    --gray: #5B5B5B;
+    --white: #FFFFFF;
+    --fafafa: #FAFAFA;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Montserrat', sans-serif; background: var(--fafafa); color: var(--black); }
+
+  /* HEADER */
+  header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(0,0,0,0.95);
+    border-bottom: 1px solid rgba(180,129,50,0.3);
+  }
+  .header-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 40px; height: 68px;
+  }
+  .logo img { height: 40px; filter: brightness(0) invert(1); }
+  .header-back {
+    color: rgba(255,255,255,0.6); text-decoration: none;
+    font-size: 11px; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; transition: color .2s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .header-back:hover { color: var(--gold); }
+  .social-links { display: flex; gap: 14px; }
+  .social-links a img { height: 18px; filter: brightness(0) invert(1); opacity:.7; transition: opacity .2s; }
+  .social-links a:hover img { opacity: 1; }
+
+  /* HERO */
+  .hero {
+    padding-top: 68px;
+    background: var(--black);
+    min-height: 340px;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1208 50%, #0a0a0a 100%);
+  }
+  .hero-lines-top {
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+  .hero-lines-bot {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+  .hero-content { position: relative; padding: 60px 20px; }
+  .hero-tag {
+    font-size: 10px; font-weight: 700; letter-spacing: 4px;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 16px;
+  }
+  .hero-title {
+    font-size: clamp(32px, 5vw, 64px);
+    font-weight: 900; letter-spacing: 4px;
+    text-transform: uppercase; color: var(--white);
+    line-height: 1.1; margin-bottom: 16px;
+  }
+  .hero-line { width: 48px; height: 1px; background: var(--gold); margin: 0 auto 20px; }
+  .hero-sub {
+    font-size: 13px; color: rgba(255,255,255,0.5);
+    letter-spacing: 1px; line-height: 1.7;
+    max-width: 500px; margin: 0 auto;
+  }
+
+  /* UNIDADES */
+  .unidades-section {
+    max-width: 900px; margin: 0 auto;
+    padding: 80px 40px;
+  }
+  .unidades-title {
+    text-align: center;
+    font-size: 11px; font-weight: 700; letter-spacing: 4px;
+    text-transform: uppercase; color: var(--gold);
+    margin-bottom: 48px;
+  }
+  .unidade-card {
+    background: var(--white);
+    border: 1px solid rgba(180,129,50,0.15);
+    border-radius: 2px;
+    margin-bottom: 16px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    padding: 28px 32px;
+    gap: 24px;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .unidade-card:hover {
+    border-color: var(--gold);
+    box-shadow: 0 4px 24px rgba(180,129,50,0.1);
+  }
+  .unidade-nome {
+    font-size: 13px; font-weight: 700; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--black);
+    margin-bottom: 6px;
+  }
+  .unidade-end {
+    font-size: 12px; color: var(--gray);
+    line-height: 1.6; letter-spacing: 0.3px;
+  }
+  .btn-whatsapp {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--gold); color: var(--white);
+    text-decoration: none; padding: 14px 28px;
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; border-radius: 2px;
+    white-space: nowrap; transition: background .2s, transform .2s;
+    flex-shrink: 0;
+  }
+  .btn-whatsapp:hover { background: var(--gold-dark); transform: translateY(-1px); }
+  .btn-whatsapp svg { width: 18px; height: 18px; fill: white; flex-shrink: 0; }
+
+  /* DIVIDER */
+  .divider {
+    max-width: 900px; margin: 0 auto 48px;
+    padding: 0 40px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px;
+    background: rgba(180,129,50,0.2);
+  }
+  .divider span {
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--gold); font-weight: 600;
+  }
+
+  /* FOOTER */
+  footer {
+    background: #0a0a0a; color: rgba(255,255,255,0.4);
+    padding: 40px; text-align: center;
+    border-top: 1px solid rgba(180,129,50,0.15);
+  }
+  .footer-logo img { height: 32px; filter: brightness(0) invert(1); opacity:.6; margin-bottom: 20px; }
+  .footer-social { display: flex; gap: 16px; justify-content: center; margin-bottom: 20px; }
+  .footer-social a img { height: 18px; filter: brightness(0) invert(1); opacity:.4; transition: opacity .2s; }
+  .footer-social a:hover img { opacity: 1; }
+  .footer-text { font-size: 11px; line-height: 1.8; }
+  .footer-text a { color: rgba(255,255,255,0.3); text-decoration: none; transition: color .2s; }
+  .footer-text a:hover { color: var(--gold); }
+
+  @media (max-width: 600px) {
+    .unidade-card { grid-template-columns: 1fr; }
+    .btn-whatsapp { justify-content: center; }
+    .header-inner { padding: 0 20px; }
+    .unidades-section { padding: 60px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a href="studio-lurech-site.html" class="header-back">
+      ← Voltar ao site
+    </a>
+    <div class="logo">
+      <img src="https://static.wixstatic.com/media/91f6a3_9d4d856f69ff4a349fa749a7b15c1696~mv2.png" alt="Studio Lu Rech">
+    </div>
+    <div class="social-links">
+      <a href="https://www.instagram.com/studiolurech" target="_blank">
+        <img src="https://static.wixstatic.com/media/e1aa082f7c0747168d9cf43e77046142.png" alt="Instagram">
+      </a>
+      <a href="https://www.facebook.com/studiolurech" target="_blank">
+        <img src="https://static.wixstatic.com/media/4057345bcf57474b96976284050c00df.png" alt="Facebook">
+      </a>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-lines-top"></div>
+  <div class="hero-lines-bot"></div>
+  <div class="hero-content">
+    <div class="hero-tag">Atendimento 24h</div>
+    <h1 class="hero-title">Seja uma de<br>nossas clientes</h1>
+    <div class="hero-line"></div>
+    <p class="hero-sub">Escolha sua unidade e agende pelo WhatsApp.<br>Estamos prontos para te receber.</p>
+  </div>
+</section>
+
+<div class="unidades-section">
+  <div class="unidades-title">Escolha sua unidade</div>
+
+  <div class="unidade-card">
+    <div>
+      <div class="unidade-nome">Barra Prime</div>
+      <div class="unidade-end">Av. Afonso Arinos de Melo Franco, 222 — Bl 2B / Sala 238 — Barra Prime, Rio de Janeiro</div>
+    </div>
+    <a href="https://wa.link/jpcrke" target="_blank" class="btn-whatsapp">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Agendar
+    </a>
+  </div>
+
+  <div class="unidade-card">
+    <div>
+      <div class="unidade-nome">Leblon</div>
+      <div class="unidade-end">Rua Conde de Bernadotte, 26 — Loja 110 — Galeria do Teatro Leblon, Rio de Janeiro</div>
+    </div>
+    <a href="https://wa.link/6as7sa" target="_blank" class="btn-whatsapp">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Agendar
+    </a>
+  </div>
+
+  <div class="unidade-card">
+    <div>
+      <div class="unidade-nome">Blue Center</div>
+      <div class="unidade-end">Av. das Américas, 12.300 — Loja 142 — Blue Center Mall, Rio de Janeiro</div>
+    </div>
+    <a href="https://wa.link/xk891c" target="_blank" class="btn-whatsapp">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Agendar
+    </a>
+  </div>
+
+  <div class="unidade-card">
+    <div>
+      <div class="unidade-nome">Copacabana</div>
+      <div class="unidade-end">Av. Atlântica, 4240 — Loja 205 — Cassino Atlântico, Rio de Janeiro</div>
+    </div>
+    <a href="https://wa.link/sxka5u" target="_blank" class="btn-whatsapp">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Agendar
+    </a>
+  </div>
+
+  <div class="unidade-card">
+    <div>
+      <div class="unidade-nome">Moema — São Paulo</div>
+      <div class="unidade-end">Av. Ibirapuera, 1835 — Loja 03 — Indianópolis, São Paulo</div>
+    </div>
+    <a href="https://wa.me/5511939085539" target="_blank" class="btn-whatsapp">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Agendar
+    </a>
+  </div>
+
+  <div class="divider"><span>ou fale conosco</span></div>
+
+  <div style="text-align:center;padding-bottom:20px;">
+    <p style="font-size:12px;color:var(--gray);letter-spacing:0.5px;line-height:1.8;">
+      Dúvidas? Entre em contato pelo e-mail<br>
+      <a href="mailto:publicidade@studiolurech.com.br" style="color:var(--gold);text-decoration:none;font-weight:600;">publicidade@studiolurech.com.br</a>
+    </p>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">
+    <img src="https://static.wixstatic.com/media/91f6a3_9d4d856f69ff4a349fa749a7b15c1696~mv2.png" alt="Studio Lu Rech">
+  </div>
+  <div class="footer-social">
+    <a href="https://www.instagram.com/studiolurech" target="_blank">
+      <img src="https://static.wixstatic.com/media/e1aa082f7c0747168d9cf43e77046142.png" alt="Instagram">
+    </a>
+    <a href="https://www.facebook.com/studiolurech" target="_blank">
+      <img src="https://static.wixstatic.com/media/4057345bcf57474b96976284050c00df.png" alt="Facebook">
+    </a>
+    <a href="https://www.tiktok.com/@studiolurech" target="_blank">
+      <img src="https://static.wixstatic.com/media/11062b_66167d61316d4665841f3397360d54a9~mv2.png" alt="TikTok">
+    </a>
+  </div>
+  <div class="footer-text">
+    © 2026 Studio Lu Rech. Todos os direitos reservados.<br>
+    LGPD — <a href="mailto:publicidade@studiolurech.com.br">publicidade@studiolurech.com.br</a>
+  </div>
+</footer>
+
+</body>
+</html>

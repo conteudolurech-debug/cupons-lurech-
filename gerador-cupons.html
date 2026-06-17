@@ -963,6 +963,7 @@ async function renderList() {
       <td><span class="code-pill">${escapeHTML(c.codigo)}</span></td>
       <td><strong>${escapeHTML(c.nome)}</strong></td>
       <td>${escapeHTML(c.premio)}${c.subpremio?` <small style="color:var(--gray)">(${escapeHTML(c.subpremio)})</small>`:''}</td>
+      <td>${c.desconto?`<span style="background:#f0f9f0;color:#2a6a3a;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:600;">${escapeHTML(c.desconto)}</span>`:'—'}</td>
       <td><span class="motivo-pill ${motivoClass(c.motivo)}">${escapeHTML(c.motivo)}</span></td>
       <td>${escapeHTML(c.unidade)}</td>
       <td>${fmtDate(c.emissao)}</td>
@@ -979,7 +980,7 @@ async function renderList() {
 
   container.innerHTML = `<table>
     <thead><tr>
-      <th>Código</th><th>Cliente</th><th>Prêmio</th><th>Motivo</th>
+      <th>Código</th><th>Cliente</th><th>Prêmio</th><th>Desconto</th><th>Motivo</th>
       <th>Unidade</th><th>Emissão</th><th>Validade</th><th>Status</th>
       ${isAdmin?'<th>Criado por</th>':''}
       <th></th>

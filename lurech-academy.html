@@ -3,1176 +3,563 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lu Rech Academy — Formação em Cabelo e Maquiagem</title>
+  <title>Lu Rech Academy</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
       --gold: #B48132;
-      --gold-light: #C89040;
-      --dark: #0e0e0e;
-      --dark2: #1a1a1a;
-      --cream: #F5F0E8;
-      --cream2: #EDE8DF;
-      --white: #FFFFFF;
-      --text: #2A2A2A;
+      --gold2: #C99040;
+      --dark: #0c0c0c;
+      --mid: #181818;
+      --cream: #F4EFE6;
+      --cream2: #EAE4D8;
+      --white: #fff;
     }
 
     html { scroll-behavior: smooth; }
+    body { font-family: 'Montserrat', sans-serif; background: var(--dark); color: var(--white); overflow-x: hidden; }
 
-    body {
-      font-family: 'Montserrat', sans-serif;
-      background: var(--cream);
-      color: var(--text);
-      overflow-x: hidden;
-    }
-
-    /* ── NAV ── */
+    /* ─── NAV ─── */
     nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      position: fixed; inset: 0 0 auto; z-index: 200;
+      height: 68px;
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 64px;
-      height: 72px;
-      background: rgba(14,14,14,0.92);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(180,129,50,0.2);
-    }
-
-    .nav-logo {
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--white);
-      letter-spacing: 6px;
-      text-transform: uppercase;
-      text-decoration: none;
-    }
-
-    .nav-logo span {
-      color: var(--gold);
-      font-weight: 300;
-      font-size: 11px;
-      letter-spacing: 4px;
-      display: block;
-      margin-top: -2px;
-    }
-
-    .nav-links {
-      display: flex; gap: 40px; list-style: none;
-    }
-
-    .nav-links a {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.6);
-      text-decoration: none;
-      transition: color .3s;
-    }
-
-    .nav-links a:hover { color: var(--gold); }
-
-    .nav-cta {
-      background: transparent;
-      border: 1px solid var(--gold);
-      color: var(--gold) !important;
-      padding: 10px 24px;
-      transition: background .3s, color .3s !important;
-    }
-
-    .nav-cta:hover {
-      background: var(--gold) !important;
-      color: var(--white) !important;
-    }
-
-    /* ── HERO ── */
-    .hero {
-      min-height: 100vh;
-      position: relative;
-      display: flex;
-      align-items: center;
-      overflow: hidden;
-    }
-
-    .hero-bg {
-      position: absolute; inset: 0;
-      background: linear-gradient(135deg, #1a1208 0%, #0e0e0e 60%, #1a1208 100%);
-    }
-
-    .hero-bg img {
-      width: 100%; height: 100%;
-      object-fit: cover;
-      opacity: 0.45;
-    }
-
-    .hero-overlay {
-      position: absolute; inset: 0;
-      background: linear-gradient(to right, rgba(0,0,0,0.9) 35%, rgba(0,0,0,0.3) 100%);
-    }
-
-    .hero-content {
-      position: relative; z-index: 2;
-      padding: 0 64px;
-      max-width: 700px;
-      padding-top: 72px;
-    }
-
-    .hero-badge {
-      display: inline-block;
-      border: 1px solid var(--gold);
-      color: var(--gold);
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      padding: 10px 20px;
-      margin-bottom: 36px;
-    }
-
-    .hero-logo {
-      margin-bottom: 32px;
-    }
-
-    .hero-logo-name {
-      font-size: 72px;
-      font-weight: 800;
-      color: var(--white);
-      letter-spacing: 10px;
-      line-height: 1;
-      display: block;
-    }
-
-    .hero-logo-sub {
-      font-size: 12px;
-      font-weight: 300;
-      color: var(--gold);
-      letter-spacing: 8px;
-      text-transform: uppercase;
-      display: block;
-      margin-top: 8px;
-    }
-
-    .hero-tagline {
-      font-size: 20px;
-      font-weight: 200;
-      color: rgba(255,255,255,0.8);
-      letter-spacing: 2px;
-      line-height: 1.7;
-      margin-bottom: 48px;
-      max-width: 480px;
-    }
-
-    .hero-stats {
-      display: flex; gap: 40px; flex-wrap: wrap;
-      margin-bottom: 52px;
-      padding-top: 32px;
-      border-top: 1px solid rgba(180,129,50,0.3);
-    }
-
-    .hero-stat-label {
-      font-size: 8px;
-      font-weight: 700;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: var(--gold);
-      display: block;
-      margin-bottom: 6px;
-    }
-
-    .hero-stat-value {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--white);
-    }
-
-    .btn-gold {
-      display: inline-block;
-      background: var(--gold);
-      color: var(--white);
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      padding: 18px 48px;
-      text-decoration: none;
-      transition: background .3s, transform .2s;
-    }
-
-    .btn-gold:hover { background: var(--gold-light); transform: translateY(-2px); }
-
-    /* ── NÚMEROS ── */
-    .numeros {
-      background: var(--dark2);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 0;
-      flex-wrap: wrap;
-    }
-
-    .numero-item {
-      text-align: center;
-      padding: 52px 64px;
-      border-right: 1px solid rgba(255,255,255,0.06);
-      flex: 1;
-      min-width: 160px;
-    }
-
-    .numero-item:last-child { border-right: none; }
-
-    .numero-val {
-      font-size: 44px;
-      font-weight: 900;
-      color: var(--gold);
-      display: block;
-      line-height: 1;
-    }
-
-    .numero-label {
-      font-size: 9px;
-      font-weight: 600;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.4);
-      margin-top: 10px;
-      display: block;
-    }
-
-    /* ── SOBRE ── */
-    .sobre {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      background: var(--cream);
-    }
-
-    .sobre-text {
-      padding: 100px 80px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .section-label {
-      font-size: 8px;
-      font-weight: 700;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      color: var(--gold);
-      margin-bottom: 14px;
-    }
-
-    .section-title {
-      font-size: 36px;
-      font-weight: 800;
-      color: var(--dark);
-      line-height: 1.15;
-      margin-bottom: 28px;
-    }
-
-    .section-title em {
-      font-style: normal;
-      color: var(--gold);
-    }
-
-    .sobre-text p {
-      font-size: 14px;
-      line-height: 1.9;
-      color: #555;
-      font-weight: 300;
-      margin-bottom: 14px;
-    }
-
-    .sobre-text p strong { color: var(--gold); font-weight: 600; }
-
-    .btn-outline {
-      display: inline-block;
-      border: 1px solid var(--gold);
-      color: var(--gold);
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      padding: 14px 32px;
-      text-decoration: none;
-      margin-top: 28px;
-      transition: background .3s, color .3s;
-      align-self: flex-start;
-    }
-
-    .btn-outline:hover { background: var(--gold); color: var(--white); }
-
-    .sobre-photo {
-      min-height: 600px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .sobre-photo img {
-      width: 100%; height: 100%; object-fit: cover;
-    }
-
-    /* Placeholder for photos */
-    .photo-ph {
-      width: 100%; height: 100%; min-height: inherit;
-      background: linear-gradient(135deg, #2c2010, #111);
-      display: flex; align-items: center; justify-content: center;
-    }
-
-    .photo-ph span {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      color: rgba(180,129,50,0.25);
-    }
-
-    /* ── CAROUSEL ── */
-    .carousel-section {
-      background: var(--dark);
-      overflow: hidden;
-      padding: 80px 0;
-    }
-
-    .carousel-header {
-      text-align: center;
-      padding: 0 64px;
-      margin-bottom: 56px;
-    }
-
-    .carousel-header h2 {
-      font-size: 32px;
-      font-weight: 800;
-      color: var(--white);
-      letter-spacing: 3px;
-      text-transform: uppercase;
-    }
-
-    .carousel-header p {
-      font-size: 13px;
-      font-weight: 300;
-      color: rgba(255,255,255,0.4);
-      margin-top: 10px;
-      letter-spacing: 1px;
-    }
-
-    .celeb-track {
-      display: flex;
-      gap: 4px;
-      animation: scroll-left 40s linear infinite;
-      width: max-content;
-      margin-bottom: 4px;
-    }
-
-    .celeb-track-reverse {
-      display: flex;
-      gap: 4px;
-      animation: scroll-right 40s linear infinite;
-      width: max-content;
-    }
-
-    @keyframes scroll-left {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
-
-    @keyframes scroll-right {
-      0% { transform: translateX(-50%); }
-      100% { transform: translateX(0); }
-    }
-
-    .celeb-card {
-      width: 260px;
-      height: 320px;
-      flex-shrink: 0;
-      overflow: hidden;
-      background: var(--dark2);
-    }
-
-    .celeb-card img {
-      width: 100%; height: 100%;
-      object-fit: cover;
-      display: block;
-      filter: grayscale(20%);
-      transition: filter .4s;
-    }
-
-    .celeb-card:hover img { filter: grayscale(0%); }
-
-    .celeb-card .photo-ph { height: 320px; min-height: 320px; }
-
-    /* ── CONTEÚDO DAS AULAS ── */
-    .conteudo {
-      background: var(--dark2);
-      padding: 100px 64px;
-    }
-
-    .conteudo-header {
-      text-align: center;
-      margin-bottom: 60px;
-    }
-
-    .conteudo-header h2 {
-      font-size: 36px;
-      font-weight: 800;
-      color: var(--white);
-      letter-spacing: 5px;
-      text-transform: uppercase;
-    }
-
-    .dot-divider {
-      text-align: center;
-      color: var(--gold);
-      letter-spacing: 8px;
-      font-size: 10px;
-      margin: 20px 0 0;
-    }
-
-    .conteudo-tabs {
-      display: flex;
-      justify-content: center;
-      gap: 2px;
-      margin-bottom: 52px;
-    }
-
-    .tab-btn {
-      background: none;
-      border: 1px solid rgba(180,129,50,0.3);
-      color: rgba(255,255,255,0.35);
-      font-family: 'Montserrat', sans-serif;
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      padding: 14px 40px;
-      cursor: pointer;
-      transition: all .3s;
-    }
-
-    .tab-btn.active { background: var(--gold); border-color: var(--gold); color: var(--white); }
-    .tab-btn:hover:not(.active) { border-color: var(--gold); color: var(--gold); }
-
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    .modulos-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 2px;
-      max-width: 1080px;
-      margin: 0 auto;
-    }
-
-    .modulo-card {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(180,129,50,0.12);
-      padding: 36px 32px;
-      transition: border-color .3s, background .3s;
-    }
-
-    .modulo-card:hover {
-      border-color: rgba(180,129,50,0.45);
-      background: rgba(180,129,50,0.05);
-    }
-
-    .modulo-card h4 {
-      font-size: 9px;
-      font-weight: 800;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--gold);
-      margin-bottom: 20px;
-      padding-bottom: 12px;
+      padding: 0 56px;
+      background: rgba(12,12,12,0.9);
+      backdrop-filter: blur(16px);
       border-bottom: 1px solid rgba(180,129,50,0.18);
     }
+    .nav-brand { display: flex; flex-direction: column; text-decoration: none; }
+    .nav-brand b { font-size: 17px; font-weight: 900; letter-spacing: 6px; color: var(--white); }
+    .nav-brand small { font-size: 8px; font-weight: 300; letter-spacing: 5px; color: var(--gold); text-transform: uppercase; margin-top: 1px; }
+    .nav-menu { display: flex; gap: 36px; list-style: none; align-items: center; }
+    .nav-menu a { font-size: 9px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: rgba(255,255,255,0.5); text-decoration: none; transition: color .3s; }
+    .nav-menu a:hover { color: var(--gold); }
+    .nav-cta { background: var(--gold) !important; color: var(--white) !important; padding: 10px 22px; transition: background .3s !important; }
+    .nav-cta:hover { background: var(--gold2) !important; }
 
-    .modulo-card ul { list-style: none; }
-
-    .modulo-card ul li {
-      font-size: 13px;
-      color: rgba(255,255,255,0.55);
-      font-weight: 300;
-      padding: 5px 0 5px 14px;
-      position: relative;
-      line-height: 1.5;
+    /* ─── HERO ─── */
+    .hero {
+      height: 100vh; min-height: 640px;
+      display: grid; grid-template-columns: 1fr 1fr;
+      position: relative; overflow: hidden;
     }
-
-    .modulo-card ul li::before {
+    .hero-left {
+      background: var(--dark);
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 0 72px 80px;
+      position: relative; z-index: 2;
+    }
+    .hero-left::after {
       content: '';
-      position: absolute; left: 0; top: 13px;
-      width: 5px; height: 1px;
-      background: var(--gold);
+      position: absolute; top: 0; right: 0; bottom: 0;
+      width: 1px; background: rgba(180,129,50,0.25);
     }
+    .hero-eyebrow {
+      font-size: 8px; font-weight: 700; letter-spacing: 5px;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 24px; display: block;
+    }
+    .hero-title {
+      font-size: 80px; font-weight: 900;
+      line-height: .95; letter-spacing: -1px;
+      color: var(--white); margin-bottom: 8px;
+    }
+    .hero-title-thin {
+      font-size: 80px; font-weight: 200;
+      line-height: .95; letter-spacing: -1px;
+      color: rgba(255,255,255,0.25); margin-bottom: 40px;
+      display: block;
+    }
+    .hero-desc {
+      font-size: 13px; font-weight: 300; line-height: 1.8;
+      color: rgba(255,255,255,0.5); max-width: 380px; margin-bottom: 40px;
+    }
+    .hero-stats {
+      display: flex; gap: 32px; margin-bottom: 48px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .hero-stat b { display: block; font-size: 22px; font-weight: 900; color: var(--gold); }
+    .hero-stat small { font-size: 8px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+    .btn {
+      display: inline-block; text-decoration: none;
+      font-size: 9px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase;
+      padding: 17px 40px;
+      background: var(--gold); color: var(--white);
+      transition: background .3s, transform .2s;
+    }
+    .btn:hover { background: var(--gold2); transform: translateY(-2px); }
+    .btn-outline {
+      background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.7);
+    }
+    .btn-outline:hover { border-color: var(--gold); color: var(--gold); background: transparent; transform: none; }
 
-    /* ── KIT ── */
-    .kit {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+    .hero-right {
+      position: relative; overflow: hidden;
+    }
+    .hero-right .photo-ph {
+      position: absolute; inset: 0;
+      background: linear-gradient(160deg,#1a1208,#0c0c0c);
+    }
+    .hero-right img { width: 100%; height: 100%; object-fit: cover; opacity: .7; }
+    .hero-right::before {
+      content: '';
+      position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(to right, rgba(12,12,12,.6) 0%, transparent 50%);
+    }
+    .hero-scroll {
+      position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+      z-index: 10; display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+    .hero-scroll span { font-size: 8px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+    .scroll-line { width: 1px; height: 40px; background: linear-gradient(to bottom, var(--gold), transparent); animation: pulse-line 2s infinite; }
+    @keyframes pulse-line { 0%,100%{opacity:.3} 50%{opacity:1} }
+
+    /* ─── SOBRE ─── */
+    .sobre {
+      background: var(--cream);
+      display: grid; grid-template-columns: 1fr 1fr;
+      min-height: 600px;
+    }
+    .sobre-img {
+      position: relative; overflow: hidden; min-height: 560px;
+    }
+    .sobre-img img { width: 100%; height: 100%; object-fit: cover; }
+    .sobre-img .photo-ph { position: absolute; inset: 0; background: linear-gradient(135deg,#2c2010,#111); }
+    .sobre-img-badge {
+      position: absolute; bottom: 32px; right: -1px; z-index: 2;
+      background: var(--gold); padding: 20px 28px;
+      font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--white);
+    }
+    .sobre-body {
+      padding: 80px 72px;
+      display: flex; flex-direction: column; justify-content: center;
       background: var(--cream);
     }
-
-    .kit-photo {
-      min-height: 560px;
-      overflow: hidden;
+    .tag {
+      display: inline-block; font-size: 8px; font-weight: 800;
+      letter-spacing: 4px; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 20px;
     }
+    .heading {
+      font-size: 36px; font-weight: 800; line-height: 1.15;
+      color: #111; margin-bottom: 28px;
+    }
+    .heading em { font-style: normal; font-weight: 200; color: #888; }
+    .body-text {
+      font-size: 14px; font-weight: 300; line-height: 1.9; color: #555;
+      margin-bottom: 14px;
+    }
+    .body-text strong { font-weight: 700; color: var(--gold); }
+    .btn-dark {
+      background: #111; color: var(--white);
+      margin-top: 28px; align-self: flex-start;
+    }
+    .btn-dark:hover { background: var(--gold); transform: translateY(-2px); }
 
-    .kit-photo img { width: 100%; height: 100%; object-fit: cover; }
+    /* ─── MARQUEE ─── */
+    .marquee-wrap {
+      background: var(--gold);
+      overflow: hidden; padding: 14px 0;
+    }
+    .marquee {
+      display: flex; gap: 48px;
+      animation: marquee 18s linear infinite;
+      width: max-content;
+    }
+    @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+    .marquee span {
+      font-size: 9px; font-weight: 800; letter-spacing: 4px; text-transform: uppercase;
+      color: rgba(255,255,255,0.85); white-space: nowrap;
+    }
+    .marquee-dot { color: rgba(255,255,255,0.4) !important; font-size: 6px !important; }
 
-    .kit-text {
-      padding: 100px 80px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+    /* ─── CARROSSEL ─── */
+    .fotos-section { background: var(--mid); padding: 80px 0; overflow: hidden; }
+    .fotos-header { padding: 0 56px; margin-bottom: 48px; display: flex; align-items: flex-end; justify-content: space-between; }
+    .fotos-header h2 { font-size: 28px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
+    .fotos-header p { font-size: 12px; font-weight: 300; color: rgba(255,255,255,0.35); max-width: 260px; text-align: right; line-height: 1.6; }
+
+    .track { display: flex; gap: 3px; width: max-content; margin-bottom: 3px; }
+    .track-rev { display: flex; gap: 3px; width: max-content; }
+    .track { animation: go-left 36s linear infinite; }
+    .track-rev { animation: go-right 36s linear infinite; }
+    @keyframes go-left { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+    @keyframes go-right { 0%{transform:translateX(-50%)} 100%{transform:translateX(0)} }
+
+    .foto-card {
+      width: 280px; height: 340px; flex-shrink: 0; overflow: hidden;
+      background: #222; position: relative;
+    }
+    .foto-card img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s; }
+    .foto-card:hover img { transform: scale(1.06); }
+    .foto-card .photo-ph { height: 340px; }
+
+    /* ─── CONTEÚDO ─── */
+    .conteudo { background: var(--dark); padding: 100px 56px; }
+    .section-header { margin-bottom: 56px; }
+    .section-header .tag { margin-bottom: 12px; }
+    .section-header h2 { font-size: 32px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; }
+    .section-header p { font-size: 13px; font-weight: 300; color: rgba(255,255,255,0.35); margin-top: 10px; }
+
+    .tabs { display: flex; gap: 2px; margin-bottom: 40px; }
+    .tab {
+      background: none; border: 1px solid rgba(180,129,50,0.2);
+      color: rgba(255,255,255,0.3); font-family: 'Montserrat',sans-serif;
+      font-size: 8px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase;
+      padding: 13px 36px; cursor: pointer; transition: all .3s;
+    }
+    .tab.on { background: var(--gold); border-color: var(--gold); color: var(--white); }
+    .tab:hover:not(.on) { border-color: var(--gold); color: var(--gold); }
+
+    .tc { display: none; }
+    .tc.on { display: block; }
+
+    .modulos { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; }
+    .mod {
+      border: 1px solid rgba(255,255,255,0.05);
+      padding: 32px 28px;
+      transition: border-color .3s, background .3s;
+    }
+    .mod:hover { border-color: rgba(180,129,50,0.4); background: rgba(180,129,50,0.04); }
+    .mod-title {
+      font-size: 8px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 18px; padding-bottom: 12px;
+      border-bottom: 1px solid rgba(180,129,50,0.15);
+    }
+    .mod ul { list-style: none; }
+    .mod li {
+      font-size: 12px; font-weight: 300; color: rgba(255,255,255,0.5);
+      padding: 5px 0 5px 14px; position: relative; line-height: 1.5;
+    }
+    .mod li::before { content:''; position:absolute; left:0; top:12px; width:5px; height:1px; background:var(--gold); }
+
+    /* ─── KIT ─── */
+    .kit {
+      display: grid; grid-template-columns: 1fr 1fr;
       background: var(--cream2);
     }
-
-    .kit-text h3 {
-      font-size: 30px;
-      font-weight: 800;
-      color: var(--dark);
-      margin-bottom: 10px;
-      line-height: 1.2;
+    .kit-body {
+      padding: 80px 72px;
+      display: flex; flex-direction: column; justify-content: center;
     }
-
-    .kit-sub {
-      font-size: 12px;
-      font-weight: 600;
-      color: #888;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 36px;
+    .kit-body .heading { color: #111; }
+    .kit-list { list-style: none; margin-top: 36px; display: flex; flex-direction: column; gap: 22px; }
+    .kit-item { display: flex; gap: 16px; align-items: flex-start; }
+    .kit-num {
+      font-size: 11px; font-weight: 900; color: var(--gold);
+      width: 28px; flex-shrink: 0; padding-top: 1px;
     }
+    .kit-item b { display: block; font-size: 12px; font-weight: 800; color: #222; margin-bottom: 3px; letter-spacing: .5px; }
+    .kit-item span { font-size: 13px; font-weight: 300; color: #666; line-height: 1.6; }
+    .kit-img { position: relative; overflow: hidden; min-height: 520px; }
+    .kit-img img { width: 100%; height: 100%; object-fit: cover; }
+    .kit-img .photo-ph { position: absolute; inset: 0; background: linear-gradient(135deg,#2c2010,#111); }
 
-    .kit-items { list-style: none; display: flex; flex-direction: column; gap: 24px; }
-
-    .kit-item { display: flex; gap: 18px; align-items: flex-start; }
-
-    .kit-icon {
-      width: 36px; height: 36px;
-      border: 1px solid var(--gold);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      color: var(--gold);
-      font-size: 13px;
-    }
-
-    .kit-item-text strong {
-      display: block;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--gold);
-      letter-spacing: 1px;
-      margin-bottom: 3px;
-    }
-
-    .kit-item-text span {
-      font-size: 13px;
-      font-weight: 300;
-      color: #555;
-      line-height: 1.6;
-    }
-
-    /* ── INVESTIMENTO ── */
+    /* ─── INVESTIMENTO ─── */
     .investimento {
-      background: var(--dark);
-      padding: 100px 64px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .investimento::before {
-      content: '';
-      position: absolute; top: -160px; right: -160px;
-      width: 500px; height: 500px;
-      border: 1px solid rgba(180,129,50,0.1);
-      border-radius: 50%;
-    }
-
-    .investimento::after {
-      content: '';
-      position: absolute; bottom: -100px; left: -100px;
-      width: 350px; height: 350px;
-      border: 1px solid rgba(180,129,50,0.07);
-      border-radius: 50%;
-    }
-
-    .investimento .section-label { color: var(--gold); margin-bottom: 12px; }
-
-    .investimento h2 {
-      font-size: 36px;
-      font-weight: 800;
-      color: var(--white);
-      letter-spacing: 5px;
-      text-transform: uppercase;
-    }
-
-    .preco-card {
-      display: inline-block;
-      background: var(--dark2);
-      border: 1px solid rgba(180,129,50,0.25);
-      border-top: 3px solid var(--gold);
-      padding: 60px 72px;
-      margin-top: 52px;
-      position: relative; z-index: 1;
-      min-width: 460px;
-    }
-
-    .preco-de {
-      font-size: 15px;
-      font-weight: 300;
-      color: rgba(255,255,255,0.35);
-      margin-bottom: 4px;
-    }
-
-    .preco-de span { text-decoration: line-through; }
-
-    .preco-por-label {
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.3);
-      margin-bottom: 16px;
-      display: block;
-    }
-
-    .preco-valor {
-      font-size: 64px;
-      font-weight: 900;
-      color: var(--gold);
-      line-height: 1;
-      margin-bottom: 8px;
-    }
-
-    .preco-parcelado {
-      font-size: 14px;
-      font-weight: 300;
-      color: rgba(255,255,255,0.6);
-      margin-bottom: 28px;
-    }
-
-    .preco-parcelado strong { font-weight: 700; color: var(--white); }
-
-    .preco-nota {
-      font-size: 12px;
-      font-weight: 300;
-      color: rgba(255,255,255,0.35);
-      line-height: 1.7;
-      margin-bottom: 36px;
-      max-width: 320px;
-    }
-
-    .preco-nota strong { color: var(--gold); font-weight: 600; }
-
-    /* ── GALERIA / FORMANDAS ── */
-    .galeria-section {
       background: var(--cream);
-      padding: 100px 0 0;
-      overflow: hidden;
+      padding: 100px 56px;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: center;
     }
-
-    .galeria-header {
-      text-align: center;
-      padding: 0 64px;
-      margin-bottom: 60px;
-    }
-
-    .galeria-header h2 {
-      font-size: 32px;
-      font-weight: 800;
-      color: var(--dark);
-      letter-spacing: 3px;
-      text-transform: uppercase;
-    }
-
-    .galeria-header p {
-      font-size: 13px;
-      font-weight: 300;
-      color: #888;
-      margin-top: 10px;
-      font-style: italic;
-    }
-
-    /* ── CTA FINAL ── */
-    .cta-final {
-      background: var(--dark2);
-      padding: 100px 64px;
-      text-align: center;
+    .inv-left .tag { margin-bottom: 16px; }
+    .inv-left .heading { color: #111; font-size: 40px; margin-bottom: 20px; }
+    .inv-left p { font-size: 13px; font-weight: 300; color: #666; line-height: 1.8; margin-bottom: 10px; }
+    .inv-left p strong { color: var(--gold); font-weight: 700; }
+    .inv-right {
+      background: var(--dark);
+      padding: 56px 52px;
+      border-top: 3px solid var(--gold);
       position: relative;
-      overflow: hidden;
     }
+    .inv-de { font-size: 13px; font-weight: 300; color: rgba(255,255,255,0.3); margin-bottom: 4px; }
+    .inv-de s { }
+    .inv-label { font-size: 8px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.25); margin-bottom: 12px; display: block; }
+    .inv-valor { font-size: 58px; font-weight: 900; color: var(--gold); line-height: 1; margin-bottom: 6px; }
+    .inv-parcel { font-size: 14px; font-weight: 300; color: rgba(255,255,255,0.5); margin-bottom: 28px; }
+    .inv-parcel strong { font-weight: 700; color: var(--white); }
+    .inv-nota { font-size: 11px; font-weight: 300; color: rgba(255,255,255,0.3); line-height: 1.7; margin-bottom: 36px; }
+    .inv-nota strong { color: var(--gold); }
 
-    .cta-final::before {
-      content: '';
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 700px; height: 700px;
-      border: 1px solid rgba(180,129,50,0.07);
-      border-radius: 50%;
+    /* ─── CTA BANNER ─── */
+    .cta-banner {
+      background: var(--gold);
+      padding: 72px 56px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 40px; flex-wrap: wrap;
     }
+    .cta-banner-text b { display: block; font-size: 30px; font-weight: 900; color: var(--white); letter-spacing: 1px; }
+    .cta-banner-text p { font-size: 13px; font-weight: 300; color: rgba(255,255,255,0.7); margin-top: 6px; }
+    .btn-white { background: var(--white); color: var(--gold); }
+    .btn-white:hover { background: var(--dark); color: var(--white); transform: translateY(-2px); }
 
-    .cta-final h2 {
-      font-size: 44px;
-      font-weight: 800;
-      color: var(--white);
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-      position: relative; z-index: 1;
-    }
-
-    .cta-final h2 span {
-      font-weight: 200;
-      color: rgba(255,255,255,0.4);
-      display: block;
-      font-size: 18px;
-      letter-spacing: 6px;
-      margin-bottom: 8px;
-      text-transform: uppercase;
-    }
-
-    .cta-final p {
-      font-size: 12px;
-      font-weight: 300;
-      color: rgba(255,255,255,0.35);
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      margin-bottom: 44px;
-      position: relative; z-index: 1;
-    }
-
-    .cta-final a {
-      position: relative; z-index: 1;
-    }
-
-    /* ── FOOTER ── */
+    /* ─── FOOTER ─── */
     footer {
       background: #080808;
-      padding: 52px 64px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-top: 1px solid rgba(180,129,50,0.15);
-      flex-wrap: wrap;
-      gap: 24px;
+      padding: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-top: 1px solid rgba(180,129,50,0.12);
+      flex-wrap: wrap; gap: 24px;
     }
+    .f-brand b { display: block; font-size: 18px; font-weight: 900; letter-spacing: 6px; color: var(--white); }
+    .f-brand small { font-size: 8px; font-weight: 300; letter-spacing: 5px; color: var(--gold); text-transform: uppercase; margin-top: 2px; display: block; }
+    footer p { font-size: 10px; font-weight: 300; color: rgba(255,255,255,0.2); }
+    .f-link { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); text-decoration: none; border: 1px solid rgba(180,129,50,0.3); padding: 11px 24px; transition: all .3s; }
+    .f-link:hover { background: var(--gold); color: var(--white); }
 
-    .footer-logo-wrap { text-align: left; }
-
-    .footer-logo {
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--white);
-      letter-spacing: 6px;
-      text-transform: uppercase;
-      display: block;
+    /* photo-ph */
+    .photo-ph {
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg,#1a1208,#0c0c0c);
+      display: flex; align-items: center; justify-content: center;
     }
+    .photo-ph span { font-size: 9px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: rgba(180,129,50,0.2); }
 
-    .footer-sub {
-      font-size: 9px;
-      font-weight: 300;
-      letter-spacing: 5px;
-      color: var(--gold);
-      text-transform: uppercase;
-      display: block;
-      margin-top: 3px;
-    }
-
-    footer p {
-      font-size: 11px;
-      font-weight: 300;
-      color: rgba(255,255,255,0.2);
-    }
-
-    footer .footer-link {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--gold);
-      text-decoration: none;
-      border: 1px solid rgba(180,129,50,0.3);
-      padding: 10px 24px;
-      transition: background .3s, color .3s;
-    }
-
-    footer .footer-link:hover { background: var(--gold); color: var(--white); }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width: 900px) {
+    /* ─── RESPONSIVE ─── */
+    @media(max-width:900px) {
       nav { padding: 0 24px; }
-      .nav-links { display: none; }
-      .hero-content { padding: 100px 32px 60px; }
-      .hero-logo-name { font-size: 48px; }
-      .hero-stats { gap: 20px; }
+      .nav-menu { display: none; }
+      .hero { grid-template-columns: 1fr; min-height: unset; }
+      .hero-left { padding: 100px 28px 56px; }
+      .hero-title, .hero-title-thin { font-size: 52px; }
+      .hero-right { height: 320px; }
       .sobre, .kit { grid-template-columns: 1fr; }
-      .sobre-photo, .kit-photo { min-height: 320px; }
-      .sobre-text, .kit-text { padding: 60px 32px; }
-      .numeros { flex-direction: column; gap: 0; }
-      .numero-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
-      .conteudo { padding: 72px 24px; }
-      .modulos-grid { grid-template-columns: 1fr; }
-      .investimento { padding: 72px 24px; }
-      .preco-card { min-width: unset; width: 100%; padding: 44px 28px; }
-      .preco-valor { font-size: 48px; }
-      .galeria-header, .carousel-header { padding: 0 24px; }
-      .cta-final { padding: 72px 32px; }
-      .cta-final h2 { font-size: 28px; }
-      footer { padding: 40px 24px; flex-direction: column; text-align: center; }
-      .footer-logo-wrap { text-align: center; }
+      .sobre-img, .kit-img { min-height: 300px; }
+      .sobre-body, .kit-body { padding: 56px 28px; }
+      .investimento { grid-template-columns: 1fr; padding: 72px 28px; gap: 40px; }
+      .modulos { grid-template-columns: 1fr; }
+      .conteudo { padding: 72px 28px; }
+      .cta-banner { padding: 56px 28px; flex-direction: column; }
+      footer { padding: 40px 28px; flex-direction: column; text-align: center; }
+      .fotos-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .fotos-header p { text-align: left; }
     }
   </style>
 </head>
 <body>
 
-<!-- ── NAV ── -->
+<!-- NAV -->
 <nav>
-  <a href="#" class="nav-logo">Lu Rech<span>Academy</span></a>
-  <ul class="nav-links">
+  <a href="#" class="nav-brand"><b>LU RECH</b><small>Academy</small></a>
+  <ul class="nav-menu">
     <li><a href="#sobre">O Curso</a></li>
-    <li><a href="#conteudo">Conteúdo</a></li>
+    <li><a href="#conteudo">Módulos</a></li>
     <li><a href="#kit">Kit</a></li>
     <li><a href="#investimento">Investimento</a></li>
     <li><a href="https://api.whatsapp.com/send/?phone=5521985042072&text&type=phone_number&app_absent=0" class="nav-cta" target="_blank">Inscreva-se</a></li>
   </ul>
 </nav>
 
-<!-- ── HERO ── -->
+<!-- HERO -->
 <section class="hero">
-  <div class="hero-bg">
-    <div class="photo-ph" id="hero-ph"></div>
-  </div>
-  <div class="hero-overlay"></div>
-  <div class="hero-content">
-    <div class="hero-badge">Formação em Cabelo e Maquiagem</div>
-    <div class="hero-logo">
-      <span class="hero-logo-name">LU RECH</span>
-      <span class="hero-logo-sub">Academy</span>
+  <div class="hero-left">
+    <span class="hero-eyebrow">Formação em Cabelo & Maquiagem · Rio de Janeiro</span>
+    <div>
+      <div class="hero-title">LU RECH</div>
+      <span class="hero-title-thin">ACADEMY</span>
     </div>
-    <p class="hero-tagline">Transforme sua paixão por beleza em uma profissão.</p>
+    <p class="hero-desc">Transforme sua paixão por beleza em uma profissão. Formação presencial, prática e premium no coração do Rio de Janeiro.</p>
     <div class="hero-stats">
-      <div>
-        <span class="hero-stat-label">Carga Horária</span>
-        <span class="hero-stat-value">56h — 8 aulas</span>
-      </div>
-      <div>
-        <span class="hero-stat-label">Turno</span>
-        <span class="hero-stat-value">10h às 18h</span>
-      </div>
-      <div>
-        <span class="hero-stat-label">Local</span>
-        <span class="hero-stat-value">Rio de Janeiro</span>
-      </div>
-      <div>
-        <span class="hero-stat-label">Vagas</span>
-        <span class="hero-stat-value">Limitadas</span>
-      </div>
+      <div class="hero-stat"><b>56h</b><small>Carga Horária</small></div>
+      <div class="hero-stat"><b>8</b><small>Aulas</small></div>
+      <div class="hero-stat"><b>10–18h</b><small>Turno</small></div>
+      <div class="hero-stat"><b>RJ</b><small>Local</small></div>
     </div>
-    <a href="https://api.whatsapp.com/send/?phone=5521985042072&text&type=phone_number&app_absent=0" class="btn-gold" target="_blank">Aplique-se Agora</a>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <a href="https://api.whatsapp.com/send/?phone=5521985042072&text&type=phone_number&app_absent=0" class="btn" target="_blank">Aplique-se Agora</a>
+      <a href="#sobre" class="btn btn-outline">Saiba Mais</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="photo-ph"><span>foto hero</span></div>
+    <div class="hero-scroll">
+      <div class="scroll-line"></div>
+      <span>Role</span>
+    </div>
   </div>
 </section>
 
-<!-- ── NÚMEROS ── -->
-<div class="numeros">
-  <div class="numero-item">
-    <span class="numero-val">+500</span>
-    <span class="numero-label">Alunas Formadas</span>
-  </div>
-  <div class="numero-item">
-    <span class="numero-val">8</span>
-    <span class="numero-label">Anos de Experiência</span>
-  </div>
-  <div class="numero-item">
-    <span class="numero-val">56h</span>
-    <span class="numero-label">Formação Prática</span>
-  </div>
-  <div class="numero-item">
-    <span class="numero-val">100%</span>
-    <span class="numero-label">Presencial & Premium</span>
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee">
+    <span>Cabelo</span><span class="marquee-dot">✦</span>
+    <span>Maquiagem</span><span class="marquee-dot">✦</span>
+    <span>Formação Presencial</span><span class="marquee-dot">✦</span>
+    <span>Rio de Janeiro</span><span class="marquee-dot">✦</span>
+    <span>Vagas Limitadas</span><span class="marquee-dot">✦</span>
+    <span>Certificado Oficial</span><span class="marquee-dot">✦</span>
+    <span>+500 Formadas</span><span class="marquee-dot">✦</span>
+    <span>Ambiente Premium</span><span class="marquee-dot">✦</span>
+    <!-- dup -->
+    <span>Cabelo</span><span class="marquee-dot">✦</span>
+    <span>Maquiagem</span><span class="marquee-dot">✦</span>
+    <span>Formação Presencial</span><span class="marquee-dot">✦</span>
+    <span>Rio de Janeiro</span><span class="marquee-dot">✦</span>
+    <span>Vagas Limitadas</span><span class="marquee-dot">✦</span>
+    <span>Certificado Oficial</span><span class="marquee-dot">✦</span>
+    <span>+500 Formadas</span><span class="marquee-dot">✦</span>
+    <span>Ambiente Premium</span><span class="marquee-dot">✦</span>
   </div>
 </div>
 
-<!-- ── SOBRE ── -->
+<!-- SOBRE -->
 <section class="sobre" id="sobre">
-  <div class="sobre-text">
-    <span class="section-label">O Curso</span>
-    <h2 class="section-title">Formação completa para o <em>mercado de beleza</em></h2>
-    <p>O curso presencial oferece uma <strong>formação prática e completa</strong> em cabelo e maquiagem, focada no mercado de trabalho.</p>
-    <p>Com <strong>técnicas atualizadas</strong> e acompanhamento próximo, é ideal tanto para iniciantes quanto para profissionais que buscam aperfeiçoamento em um <strong>ambiente de aprendizado premium.</strong></p>
-    <p>Cada turma é pensada para garantir atenção individualizada, dentro do Studio Lu Rech, no Rio de Janeiro.</p>
-    <a href="https://api.whatsapp.com/send/?phone=5521985042072&text&type=phone_number&app_absent=0" class="btn-outline" target="_blank">Aplique-se Agora</a>
-  </div>
-  <div class="sobre-photo">
+  <div class="sobre-img">
     <div class="photo-ph"><span>foto do curso</span></div>
+    <div class="sobre-img-badge">Ambiente Premium</div>
+  </div>
+  <div class="sobre-body">
+    <span class="tag">Sobre o Curso</span>
+    <h2 class="heading">Formação completa para o <em>mercado de beleza</em></h2>
+    <p class="body-text">O curso presencial oferece uma <strong>formação prática e completa</strong> em cabelo e maquiagem, com foco no mercado de trabalho.</p>
+    <p class="body-text">Com <strong>técnicas atualizadas</strong> e acompanhamento próximo, é ideal tanto para iniciantes quanto para profissionais que buscam aperfeiçoamento em um <strong>ambiente de aprendizado premium.</strong></p>
+    <p class="body-text">Cada turma é pensada para garantir atenção individualizada, dentro do Studio Lu Rech, no Rio de Janeiro.</p>
+    <a href="https://api.whatsapp.com/send/?phone=5521985042072&text&type=phone_number&app_absent=0" class="btn btn-dark" target="_blank">Quero me Inscrever</a>
   </div>
 </section>
 
-<!-- ── CAROUSEL ROW 1 ── -->
-<section class="carousel-section">
-  <div class="carousel-header">
-    <span class="section-label" style="color:var(--gold);">Nossas Formandas</span>
-    <h2>Venha fazer parte você também</h2>
-    <p>Centenas de profissionais já transformaram suas carreiras</p>
+<!-- FOTOS CAROUSEL -->
+<section class="fotos-section">
+  <div class="fotos-header">
+    <div>
+      <span class="tag" style="color:var(--gold);">Nossas Formandas</span>
+      <h2>Venha fazer parte</h2>
+    </div>
+    <p>Centenas de profissionais já transformaram suas carreiras com a Lu Rech Academy.</p>
   </div>
 
-  <div class="celeb-track">
-    <div class="celeb-card"><div class="photo-ph"><span>foto 1</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 2</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 3</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 4</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 5</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 6</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 7</span></div></div>
-    <!-- duplicated for infinite loop -->
-    <div class="celeb-card"><div class="photo-ph"><span>foto 1</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 2</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 3</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 4</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 5</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 6</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 7</span></div></div>
+  <div class="track">
+    <div class="foto-card"><div class="photo-ph"><span>foto 1</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 2</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 3</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 4</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 5</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 6</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 7</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 1</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 2</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 3</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 4</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 5</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 6</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 7</span></div></div>
   </div>
-
-  <div class="celeb-track-reverse" style="margin-top:4px;">
-    <div class="celeb-card"><div class="photo-ph"><span>foto 8</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 9</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 10</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 11</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 12</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 13</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 14</span></div></div>
-    <!-- duplicated for infinite loop -->
-    <div class="celeb-card"><div class="photo-ph"><span>foto 8</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 9</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 10</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 11</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 12</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 13</span></div></div>
-    <div class="celeb-card"><div class="photo-ph"><span>foto 14</span></div></div>
+  <div class="track-rev">
+    <div class="foto-card"><div class="photo-ph"><span>foto 8</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 9</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 10</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 11</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 12</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 13</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 14</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 8</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 9</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 10</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 11</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 12</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 13</span></div></div>
+    <div class="foto-card"><div class="photo-ph"><span>foto 14</span></div></div>
   </div>
 </section>
 
-<!-- ── CONTEÚDO DAS AULAS ── -->
+<!-- CONTEÚDO -->
 <section class="conteudo" id="conteudo">
-  <div class="conteudo-header">
-    <span class="section-label" style="color:var(--gold);">Programa Completo</span>
+  <div class="section-header">
+    <span class="tag">Programa Completo</span>
     <h2>Conteúdo das Aulas</h2>
-    <div class="dot-divider">· · · · · · · · · · · · ·</div>
+    <p>Módulos práticos desenvolvidos por especialistas do mercado de beleza</p>
   </div>
 
-  <div class="conteudo-tabs">
-    <button class="tab-btn active" onclick="switchTab('cabelo',this)">Cabelo</button>
-    <button class="tab-btn" onclick="switchTab('maquiagem',this)">Maquiagem</button>
+  <div class="tabs">
+    <button class="tab on" onclick="tab('cabelo',this)">Cabelo</button>
+    <button class="tab" onclick="tab('maquiagem',this)">Maquiagem</button>
   </div>
 
-  <div class="tab-content active" id="tab-cabelo">
-    <div class="modulos-grid">
-      <div class="modulo-card">
-        <h4>Preparação de Cabelo</h4>
-        <ul>
-          <li>Tipos de fios</li>
-          <li>Tipos de ferramentas</li>
-          <li>Tipos de escova</li>
-          <li>Lavatório</li>
-          <li>Produtos</li>
-        </ul>
-      </div>
-      <div class="modulo-card">
-        <h4>Escova & Babyliss</h4>
-        <ul>
-          <li>Escova modelada</li>
-          <li>Escova lisa</li>
-          <li>Ondas marcadas</li>
-          <li>Baby fitado</li>
-          <li>Beach waves</li>
-        </ul>
-      </div>
-      <div class="modulo-card">
-        <h4>Penteados Cabelo Solto</h4>
-        <ul>
-          <li>Torcidinho dos dois lados</li>
-          <li>Trança dos dois lados</li>
-          <li>Meia preso torcido</li>
-          <li>Meia preso trançado</li>
-        </ul>
-      </div>
-      <div class="modulo-card">
-        <h4>Rabo de Cavalo</h4>
-        <ul>
-          <li>Rabo liso</li>
-          <li>Rabo com ondas</li>
-          <li>Rabo volumoso</li>
-          <li>Rabo trançado</li>
-        </ul>
-      </div>
-      <div class="modulo-card">
-        <h4>Coque</h4>
-        <ul>
-          <li>Coque básico</li>
-          <li>Coque com ondas</li>
-          <li>Coque trançado</li>
-          <li>Coque moderno</li>
-        </ul>
-      </div>
-      <div class="modulo-card">
-        <h4>Penteados de Festa</h4>
-        <ul>
-          <li>Produções elaboradas</li>
-          <li>Penteados para noivas</li>
-          <li>Acessórios e acabamento</li>
-          <li>Fixação profissional</li>
-        </ul>
-      </div>
+  <div class="tc on" id="tc-cabelo">
+    <div class="modulos">
+      <div class="mod"><div class="mod-title">Preparação de Cabelo</div><ul><li>Tipos de fios</li><li>Tipos de ferramentas</li><li>Tipos de escova</li><li>Lavatório</li><li>Produtos</li></ul></div>
+      <div class="mod"><div class="mod-title">Escova & Babyliss</div><ul><li>Escova modelada</li><li>Escova lisa</li><li>Ondas marcadas</li><li>Baby fitado</li><li>Beach waves</li></ul></div>
+      <div class="mod"><div class="mod-title">Penteados Solto</div><ul><li>Torcidinho dos dois lados</li><li>Trança dos dois lados</li><li>Meia preso torcido</li><li>Meia preso trançado</li></ul></div>
+      <div class="mod"><div class="mod-title">Rabo de Cavalo</div><ul><li>Rabo liso</li><li>Rabo com ondas</li><li>Rabo volumoso</li><li>Rabo trançado</li></ul></div>
+      <div class="mod"><div class="mod-title">Coque</div><ul><li>Coque básico</li><li>Coque com ondas</li><li>Coque trançado</li><li>Coque moderno</li></ul></div>
+      <div class="mod"><div class="mod-title">Penteados de Festa</div><ul><li>Produções elaboradas</li><li>Penteados para noivas</li><li>Acessórios e acabamento</li><li>Fixação profissional</li></ul></div>
     </div>
   </div>
 
-  <div class="tab-content" id="tab-maquiagem">
-    <div class="modulos-grid">
-      <div class="modulo-card">
-        <h4>Preparação da Pele</h4>
-        <ul>
-          <li>Tipos de pele</li>
-          <li>Hidratação e primer</li>
-          <li>Base e cobertura</li>
-          <li>Corretivo</li>
-          <li>Pó e fixação</li>
-        </ul>
-      </div>
-      <div class="modulo-card">
-        <h4>Contorno & Iluminação</h4>
-        <ul>
-          <li>Contorno facial</li>
-          <li>Bronzer e blush</li>
-          <li>Iluminador</li>
-          <li>Técnica strobing</li>
-        </ul>
-      </div>
-      <div class="modulo-card">
-        <h4>Olhos</h4>
-        <ul>
-          <li>Sombra esfumada</li>
-          <li>Delineador</li>
-          <li>Cílios postiços</li>
-          <li>Cut crease</li>
-        </ul>
-      </div>
-      <div class="modulo-card">
-        <h4>Sobrancelha</h4>
-        <ul>
-          <li>Design de sobrancelha</li>
-          <li>Preenchimento</li>
-          <li>Técnicas naturais</li>
-          <li>Sobrancelha definida</li>
-        </ul>
-      </div>
-      <div class="modulo-card">
-        <h4>Boca & Finalização</h4>
-        <ul>
-          <li>Batom e gloss</li>
-          <li>Delineador labial</li>
-          <li>Fixação e durabilidade</li>
-          <li>Acabamento profissional</li>
-        </ul>
-      </div>
-      <div class="modulo-card">
-        <h4>Produções Completas</h4>
-        <ul>
-          <li>Make social</li>
-          <li>Make noiva</li>
-          <li>Make artística</li>
-          <li>Maquiagem airbrush</li>
-        </ul>
-      </div>
+  <div class="tc" id="tc-maquiagem">
+    <div class="modulos">
+      <div class="mod"><div class="mod-title">Preparação da Pele</div><ul><li>Tipos de pele</li><li>Hidratação e primer</li><li>Base e cobertura</li><li>Corretivo</li><li>Pó e fixação</li></ul></div>
+      <div class="mod"><div class="mod-title">Contorno & Iluminação</div><ul><li>Contorno facial</li><li>Bronzer e blush</li><li>Iluminador</li><li>Técnica strobing</li></ul></div>
+      <div class="mod"><div class="mod-title">Olhos</div><ul><li>Sombra esfumada</li><li>Delineador</li><li>Cílios postiços</li><li>Cut crease</li></ul></div>
+      <div class="mod"><div class="mod-title">Sobrancelha</div><ul><li>Design de sobrancelha</li><li>Preenchimento</li><li>Técnicas naturais</li><li>Sobrancelha definida</li></ul></div>
+      <div class="mod"><div class="mod-title">Boca & Finalização</div><ul><li>Batom e gloss</li><li>Delineador labial</li><li>Fixação e durabilidade</li><li>Acabamento profissional</li></ul></div>
+      <div class="mod"><div class="mod-title">Produções Completas</div><ul><li>Make social</li><li>Make noiva</li><li>Make artística</li><li>Maquiagem airbrush</li></ul></div>
     </div>
   </div>
 </section>
 
-<!-- ── KIT ── -->
+<!-- KIT -->
 <section class="kit" id="kit">
-  <div class="kit-photo">
-    <div class="photo-ph"><span>foto do kit</span></div>
-  </div>
-  <div class="kit-text">
-    <span class="section-label">Incluso no Curso</span>
-    <h3>Kit Completo de Boas Vindas</h3>
-    <p class="kit-sub">Você irá receber</p>
-    <ul class="kit-items">
-      <li class="kit-item">
-        <div class="kit-icon">✦</div>
-        <div class="kit-item-text">
-          <strong>Material Didático</strong>
-          <span>Apostila exclusiva com todo o conteúdo do curso.</span>
-        </div>
-      </li>
-      <li class="kit-item">
-        <div class="kit-icon">✦</div>
-        <div class="kit-item-text">
-          <strong>Kit do Aluno</strong>
-          <span>Nécessaire personalizada, caneta e uniforme oficial.</span>
-        </div>
-      </li>
-      <li class="kit-item">
-        <div class="kit-icon">✦</div>
-        <div class="kit-item-text">
-          <strong>Experiência Prática</strong>
-          <span>Suporte técnico com produtos de beleza de alta performance.</span>
-        </div>
-      </li>
-      <li class="kit-item">
-        <div class="kit-icon">✦</div>
-        <div class="kit-item-text">
-          <strong>Certificado Oficial</strong>
-          <span>Certificado Lu Rech Academy ao concluir o programa.</span>
-        </div>
-      </li>
+  <div class="kit-body">
+    <span class="tag">Incluso no Curso</span>
+    <h2 class="heading">Kit Completo de<br><em>Boas Vindas</em></h2>
+    <ul class="kit-list">
+      <li class="kit-item"><div class="kit-num">01</div><div><b>Material Didático</b><span>Apostila exclusiva com todo o conteúdo do curso.</span></div></li>
+      <li class="kit-item"><div class="kit-num">02</div><div><b>Kit do Aluno</b><span>Nécessaire personalizada, caneta e uniforme oficial.</span></div></li>
+      <li class="kit-item"><div class="kit-num">03</div><div><b>Experiência Prática</b><span>Suporte técnico com produtos de beleza de alta performance.</span></div></li>
+      <li class="kit-item"><div class="kit-num">04</div><div><b>Certificado Oficial</b><span>Certificado Lu Rech Academy ao concluir o programa.</span></div></li>
     </ul>
   </div>
+  <div class="kit-img">
+    <div class="photo-ph"><span>foto kit</span></div>
+  </div>
 </section>
 
-<!-- ── INVESTIMENTO ── -->
+<!-- INVESTIMENTO -->
 <section class="investimento" id="investimento">
-  <span class="section-label">Invista em Você</span>
-  <h2>Investimento</h2>
-  <div class="dot-divider">· · · · · · · · · · · · ·</div>
-
-  <div class="preco-card">
-    <p class="preco-de">De <span>R$ 2.427,00</span></p>
-    <span class="preco-por-label">Por apenas</span>
-    <div class="preco-valor">R$ 1.797,00</div>
-    <p class="preco-parcelado">ou 3x de <strong>R$ 599,00 sem juros</strong></p>
-    <p class="preco-nota">É necessário o pagamento da <strong>matrícula de R$ 150,00</strong> no ato da inscrição para a pré-reserva da sua vaga.</p>
-    <a href="https://api.whatsapp.com/send/?phone=5521985042072&text&type=phone_number&app_absent=0" class="btn-gold" style="display:block;text-align:center;" target="_blank">Garantir Minha Vaga</a>
+  <div class="inv-left">
+    <span class="tag">Invista em Você</span>
+    <h2 class="heading">Investimento</h2>
+    <p>Uma formação completa que transforma sua carreira para sempre.</p>
+    <p>É necessário o pagamento da <strong>matrícula de R$ 150,00</strong> no ato da inscrição para a pré-reserva da sua vaga.</p>
+    <p style="margin-top:24px;font-size:13px;font-weight:300;color:#888;line-height:1.8;">Turmas reduzidas para garantir atenção individualizada a cada aluna.</p>
+  </div>
+  <div class="inv-right">
+    <p class="inv-de">De <s>R$ 2.427,00</s></p>
+    <span class="inv-label">Por apenas</span>
+    <div class="inv-valor">R$&nbsp;1.797</div>
+    <p class="inv-parcel">ou 3x de <strong>R$ 599,00 sem juros</strong></p>
+    <p class="inv-nota">Matrícula de <strong>R$ 150,00</strong> para reservar sua vaga.</p>
+    <a href="https://api.whatsapp.com/send/?phone=5521985042072&text&type=phone_number&app_absent=0" class="btn" style="display:block;text-align:center;" target="_blank">Garantir Minha Vaga</a>
   </div>
 </section>
 
-<!-- ── CTA FINAL ── -->
-<section class="cta-final">
-  <h2>
-    <span>Vagas Limitadas</span>
-    Pronta para começar?
-  </h2>
-  <p>Turmas reduzidas · atenção personalizada · ambiente premium</p>
-  <a href="https://api.whatsapp.com/send/?phone=5521985042072&text&type=phone_number&app_absent=0" class="btn-gold" target="_blank">Aplique-se Agora</a>
-</section>
+<!-- CTA BANNER -->
+<div class="cta-banner">
+  <div class="cta-banner-text">
+    <b>Vagas Limitadas.</b>
+    <p>Turmas reduzidas · atenção personalizada · ambiente premium no Rio de Janeiro</p>
+  </div>
+  <a href="https://api.whatsapp.com/send/?phone=5521985042072&text&type=phone_number&app_absent=0" class="btn btn-white" target="_blank">Aplique-se Agora</a>
+</div>
 
-<!-- ── FOOTER ── -->
+<!-- FOOTER -->
 <footer>
-  <div class="footer-logo-wrap">
-    <span class="footer-logo">Lu Rech</span>
-    <span class="footer-sub">Academy</span>
-  </div>
+  <div class="f-brand"><b>LU RECH</b><small>Academy</small></div>
   <p>© 2025 Lu Rech Academy. Todos os direitos reservados.</p>
-  <a href="https://api.whatsapp.com/send/?phone=5521985042072&text&type=phone_number&app_absent=0" class="footer-link" target="_blank">Falar no WhatsApp</a>
+  <a href="https://api.whatsapp.com/send/?phone=5521985042072&text&type=phone_number&app_absent=0" class="f-link" target="_blank">WhatsApp</a>
 </footer>
 
 <script>
-function switchTab(tab, btn) {
-  document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('active'); });
-  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
-  document.getElementById('tab-' + tab).classList.add('active');
-  btn.classList.add('active');
+function tab(id, btn) {
+  document.querySelectorAll('.tc').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+  document.getElementById('tc-' + id).classList.add('on');
+  btn.classList.add('on');
 }
 </script>
 </body>

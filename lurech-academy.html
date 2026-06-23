@@ -177,27 +177,6 @@
     }
     .marquee-dot { color: rgba(255,255,255,0.4) !important; font-size: 6px !important; }
 
-    /* ─── CARROSSEL ─── */
-    .fotos-section { background: var(--mid); padding: 80px 0; overflow: hidden; }
-    .fotos-header { padding: 0 56px; margin-bottom: 48px; display: flex; align-items: flex-end; justify-content: space-between; }
-    .fotos-header h2 { font-size: 28px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
-    .fotos-header p { font-size: 12px; font-weight: 300; color: rgba(255,255,255,0.35); max-width: 260px; text-align: right; line-height: 1.6; }
-
-    .track { display: flex; gap: 3px; width: max-content; margin-bottom: 3px; }
-    .track-rev { display: flex; gap: 3px; width: max-content; }
-    .track { animation: go-left 36s linear infinite; }
-    .track-rev { animation: go-right 36s linear infinite; }
-    @keyframes go-left { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-    @keyframes go-right { 0%{transform:translateX(-50%)} 100%{transform:translateX(0)} }
-
-    .foto-card {
-      width: 280px; height: 340px; flex-shrink: 0; overflow: hidden;
-      background: #222; position: relative;
-    }
-    .foto-card img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s; }
-    .foto-card:hover img { transform: scale(1.06); }
-    .foto-card .photo-ph { height: 340px; }
-
     /* ─── CONTEÚDO ─── */
     .conteudo { background: var(--dark); padding: 100px 56px; }
     .section-header { margin-bottom: 56px; }
@@ -419,50 +398,6 @@
     <p class="body-text">Com <strong>técnicas atualizadas</strong> e acompanhamento próximo, é ideal tanto para iniciantes quanto para profissionais que buscam aperfeiçoamento em um <strong>ambiente de aprendizado premium.</strong></p>
     <p class="body-text">Cada turma é pensada para garantir atenção individualizada, dentro do Studio Lu Rech, no Rio de Janeiro.</p>
     <a href="https://api.whatsapp.com/send/?phone=5521985042072&text&type=phone_number&app_absent=0" class="btn btn-dark" target="_blank">Quero me Inscrever</a>
-  </div>
-</section>
-
-<!-- FOTOS CAROUSEL -->
-<section class="fotos-section">
-  <div class="fotos-header">
-    <div>
-      <span class="tag" style="color:var(--gold);">Nossas Formandas</span>
-      <h2>Venha fazer parte</h2>
-    </div>
-    <p>Centenas de profissionais já transformaram suas carreiras com a Lu Rech Academy.</p>
-  </div>
-
-  <div class="track">
-    <div class="foto-card"><div class="photo-ph"><span>foto 1</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 2</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 3</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 4</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 5</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 6</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 7</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 1</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 2</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 3</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 4</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 5</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 6</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 7</span></div></div>
-  </div>
-  <div class="track-rev">
-    <div class="foto-card"><div class="photo-ph"><span>foto 8</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 9</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 10</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 11</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 12</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 13</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 14</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 8</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 9</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 10</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 11</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 12</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 13</span></div></div>
-    <div class="foto-card"><div class="photo-ph"><span>foto 14</span></div></div>
   </div>
 </section>
 

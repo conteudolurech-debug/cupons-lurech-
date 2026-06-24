@@ -494,18 +494,49 @@ function tab(id, btn) {
 
 <script>
 (function(){
-  var slides = document.querySelectorAll(".hslide");
+  // Wrap each img.hslide in a div with blurred bg fill
+  document.querySelectorAll(".hslide").forEach(function(img) {
+    var wrap = document.createElement("div");
+    wrap.className = img.className;
+    wrap.style.cssText = img.style.cssText;
+    // blurred bg layer
+    var bg = document.createElement("div");
+    bg.style.cssText = "position:absolute;inset:-30px;background:url(" + img.src + ") center/cover no-repeat;filter:blur(22px) brightness(0.45);";
+    // main img (contained, no crop)
+    img.className = "";
+    img.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;";
+    wrap.appendChild(bg);
+    wrap.appendChild(img);
+    img.parentNode === null ? null : wrap;
+  });
+  // Re-wrap: replace original imgs
+  var origImgs = Array.from(document.querySelectorAll(".hero-slides img"));
+  origImgs.forEach(function(img) {
+    var wrap = document.createElement("div");
+    wrap.className = img.className || "";
+    if (!wrap.className) wrap.className = "";
+    var wasActive = img.classList.contains("active");
+    wrap.classList.remove("active");
+    if (wasActive) wrap.classList.add("active");
+    var bg = document.createElement("div");
+    bg.style.cssText = "position:absolute;inset:-30px;background:url(" + img.src + ") center/cover no-repeat;filter:blur(22px) brightness(0.45);";
+    img.removeAttribute("class");
+    img.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;";
+    wrap.style.cssText = "position:absolute;inset:0;opacity:" + (wasActive?"1":"0") + ";z-index:" + (wasActive?"1":"0") + ";transition:opacity 1.6s ease-in-out;overflow:hidden;";
+    wrap.appendChild(bg);
+    img.parentNode.insertBefore(wrap, img);
+    wrap.appendChild(img);
+  });
+
+  var slides = document.querySelectorAll(".hero-slides > div");
   var cur = 0;
-  slides[cur].style.zIndex = 1;
   setInterval(function(){
     var next = (cur + 1) % slides.length;
-    // bring next on top and fade in
     slides[next].style.zIndex = 2;
-    slides[next].classList.add("active");
-    // after fade completes, clean up old
+    slides[next].style.opacity = 1;
     var prev = cur;
     setTimeout(function(){
-      slides[prev].classList.remove("active");
+      slides[prev].style.opacity = 0;
       slides[prev].style.zIndex = 0;
       slides[next].style.zIndex = 1;
     }, 1700);

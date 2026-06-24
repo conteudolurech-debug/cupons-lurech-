@@ -301,7 +301,7 @@
     }
 
     .hero-slides { position:absolute; inset:0; z-index:1; }
-    .hslide { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; z-index:0; transition:opacity 1.2s ease; }
+    .hslide { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; z-index:0; transition:opacity 1.6s ease-in-out; }
     .hslide.active { opacity:1; z-index:1; }
     .hero-scroll { z-index:4; }
   </style>
@@ -492,12 +492,22 @@ function tab(id, btn) {
 <script>
 (function(){
   var slides = document.querySelectorAll(".hslide");
-  var i = 0;
+  var cur = 0;
+  slides[cur].style.zIndex = 1;
   setInterval(function(){
-    slides[i].classList.remove("active");
-    i = (i + 1) % slides.length;
-    slides[i].classList.add("active");
-  }, 4000);
+    var next = (cur + 1) % slides.length;
+    // bring next on top and fade in
+    slides[next].style.zIndex = 2;
+    slides[next].classList.add("active");
+    // after fade completes, clean up old
+    var prev = cur;
+    setTimeout(function(){
+      slides[prev].classList.remove("active");
+      slides[prev].style.zIndex = 0;
+      slides[next].style.zIndex = 1;
+    }, 1700);
+    cur = next;
+  }, 5000);
 })();
 </script>
 </body>

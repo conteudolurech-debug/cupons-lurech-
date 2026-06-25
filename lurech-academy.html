@@ -525,19 +525,35 @@ function tab(id, btn) {
 </script>
 <script>
 (function(){
-  var mq = window.matchMedia && window.matchMedia('(max-width:900px)');
-  if(!mq || !mq.matches) return;
+  var ua = navigator.userAgent.toLowerCase();
+  var isMobile = /android|iphone|ipad|ipod|samsung|mobile|mobi/.test(ua);
+  var isNarrow = window.innerWidth < 1100;
+  if(!isMobile && !isNarrow) return;
   var hero = document.querySelector('.hero');
   var heroLeft = document.querySelector('.hero-left');
   var heroRight = document.querySelector('.hero-right');
   if(!hero||!heroLeft||!heroRight) return;
-  hero.setAttribute('style','display:block!important;position:relative!important;height:100vh;');
-  heroRight.setAttribute('style','position:absolute!important;top:0!important;left:0!important;right:0!important;bottom:0!important;z-index:1!important;width:100%!important;height:100%!important;');
-  heroLeft.setAttribute('style','position:relative!important;z-index:2!important;width:100%!important;min-height:100vh!important;padding:120px 28px 56px!important;background:linear-gradient(to top,rgba(0,0,0,0.9) 55%,rgba(0,0,0,0.2) 100%)!important;display:flex!important;flex-direction:column!important;justify-content:flex-end!important;box-sizing:border-box!important;');
+  hero.style.display='block';
+  hero.style.position='relative';
+  hero.style.height='100vh';
+  heroRight.style.position='absolute';
+  heroRight.style.top='0'; heroRight.style.left='0';
+  heroRight.style.right='0'; heroRight.style.bottom='0';
+  heroRight.style.zIndex='1'; heroRight.style.width='100%'; heroRight.style.height='100%';
+  heroLeft.style.position='relative';
+  heroLeft.style.zIndex='2';
+  heroLeft.style.width='100%';
+  heroLeft.style.minHeight='100vh';
+  heroLeft.style.padding='120px 28px 56px';
+  heroLeft.style.background='linear-gradient(to top,rgba(0,0,0,0.9) 55%,rgba(0,0,0,0.2) 100%)';
+  heroLeft.style.display='flex';
+  heroLeft.style.flexDirection='column';
+  heroLeft.style.justifyContent='flex-end';
+  heroLeft.style.boxSizing='border-box';
 })();
 </script>
 <style>
-@media screen and (max-width:900px){
+@media screen and (max-width:1100px){
   .hero{display:block!important;position:relative!important;}
   .hero-right{position:absolute!important;top:0!important;left:0!important;right:0!important;bottom:0!important;z-index:1!important;width:100%!important;height:100%!important;}
   .hero-left{position:relative!important;z-index:2!important;width:100%!important;min-height:100vh!important;padding:120px 28px 56px!important;background:linear-gradient(to top,rgba(0,0,0,0.9) 55%,rgba(0,0,0,0.2) 100%)!important;display:flex!important;flex-direction:column!important;justify-content:flex-end!important;box-sizing:border-box!important;}

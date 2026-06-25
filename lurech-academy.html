@@ -288,10 +288,20 @@
     @media(max-width:900px) {
       nav { padding: 0 24px; }
       .nav-menu { display: none; }
-      .hero { grid-template-columns: 1fr; min-height: unset; }
-      .hero-left { padding: 100px 28px 56px; }
+      .hero { display: block; position: relative; min-height: unset; }
+      .hero-right {
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        z-index: 1;
+      }
+      .hero-left {
+        position: relative; z-index: 2;
+        background: linear-gradient(to top, rgba(0,0,0,0.92) 60%, rgba(0,0,0,0.3) 100%);
+        padding: 120px 28px 56px;
+        min-height: 100vh;
+        display: flex; flex-direction: column; justify-content: flex-end;
+      }
       .hero-title, .hero-title-thin { font-size: 52px; }
-      .hero-right { height: 320px; }
+      .hero-scroll { display: none; }
       .sobre, .kit { grid-template-columns: 1fr; }
       .sobre-img, .kit-img { min-height: 300px; }
       .sobre-body, .kit-body { padding: 56px 28px; }

@@ -151,6 +151,7 @@
   .voucher-code { font-size:16px; font-weight:700; letter-spacing:1px; }
   .voucher-code span { font-weight:400; }
   .voucher-right { background:var(--gold); background-image:repeating-linear-gradient(45deg,rgba(0,0,0,.06) 0 1px,transparent 1px 40px),repeating-linear-gradient(-45deg,rgba(0,0,0,.06) 0 1px,transparent 1px 40px); position:relative; }
+  .partner-logo-wrap { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:40px; }
   .voucher-right::before { content:''; position:absolute; inset:0; background-image:radial-gradient(circle at 25% 25%,rgba(255,255,255,.06) 0 2px,transparent 3px),radial-gradient(circle at 75% 75%,rgba(0,0,0,.05) 0 2px,transparent 3px); background-size:80px 80px,80px 80px; }
 
   /* PERSONALIZAÇÃO VISUAL */
@@ -375,6 +376,26 @@
                   </label>
                 </div>
                 <div class="color-name" id="color-name">Dourado (padrão)</div>
+              </div>
+
+              <div class="field">
+                <label>Painel direito</label>
+                <div class="logo-options" style="margin-top:6px;">
+                  <button class="logo-opt" id="panel-solid" data-panel="solid">Sólido</button>
+                  <button class="logo-opt active" id="panel-diamond" data-panel="diamond">💎 Diamantes</button>
+                </div>
+                <div id="panel-colors" style="margin-top:12px;display:flex;flex-direction:column;gap:10px;">
+                  <div style="display:flex;align-items:center;gap:10px;font-size:12px;">
+                    <label style="width:130px;font-weight:500;">Cor do fundo</label>
+                    <input type="color" id="panel-bg-color" value="#E8DDD5" style="width:36px;height:28px;border:none;cursor:pointer;border-radius:6px;padding:0;">
+                    <span id="panel-bg-label" style="color:var(--gray);font-size:11px;">#E8DDD5</span>
+                  </div>
+                  <div id="diamond-color-row" style="display:flex;align-items:center;gap:10px;font-size:12px;">
+                    <label style="width:130px;font-weight:500;">Cor dos diamantes</label>
+                    <input type="color" id="panel-diamond-color" value="#C8B8AE" style="width:36px;height:28px;border:none;cursor:pointer;border-radius:6px;padding:0;">
+                    <span id="panel-diamond-label" style="color:var(--gray);font-size:11px;">#C8B8AE</span>
+                  </div>
+                </div>
               </div>
 
               <div class="field">
@@ -871,12 +892,12 @@ function applyAccentColor(hex) {
 }
 
 function applyLogoToVoucher(voucher) {
-  const logoEl = voucher.querySelector('.voucher-logo');
-  if (!logoEl) return;
+  const rightEl = voucher.querySelector('.voucher-right');
+  if (!rightEl) return;
   if (customLogoDataUrl) {
-    logoEl.innerHTML = `<img src="${customLogoDataUrl}" style="max-height:70px;max-width:220px;object-fit:contain;" alt="logo">`;
+    rightEl.innerHTML = `<div class="partner-logo-wrap"><img src="${customLogoDataUrl}" style="max-height:120px;max-width:240px;object-fit:contain;filter:brightness(0) invert(1);" alt="logo parceiro"></div>`;
   } else {
-    logoEl.innerHTML = `<span class="l1">Studio</span><span class="l2">LU RECH</span>`;
+    rightEl.innerHTML = '';
   }
 }
 
@@ -935,6 +956,74 @@ F('logo-remove').addEventListener('click', () => {
   F('logo-lurech').classList.add('active');
   F('logo-custom').classList.remove('active');
   applyLogoToVoucher(F('voucher'));
+});
+
+// ── PAINEL DIAMANTES ─────────────────────────────────────────
+let panelMode = 'diamond';
+let panelBg = '#E8DDD5';
+let panelDiamondColor = '#C8B8AE';
+
+function buildDiamondSVG(bg, stroke) {
+  // gem shape: table top, crown, girdle, pavilion lines
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='72' height='84'>
+    <rect width='72' height='84' fill='${bg}'/>
+    <g fill='none' stroke='${stroke}' stroke-width='1.4' stroke-linejoin='round'>
+      <polygon points='36,6 62,26 62,30 36,78 10,30 10,26'/>
+      <line x1='10' y1='28' x2='62' y2='28'/>
+      <line x1='36' y1='6' x2='36' y2='28'/>
+      <line x1='23' y1='6' x2='10' y2='28'/>
+      <line x1='49' y1='6' x2='62' y2='28'/>
+      <line x1='10' y1='28' x2='36' y2='78'/>
+      <line x1='62' y1='28' x2='36' y2='78'/>
+      <line x1='23' y1='6' x2='49' y2='6'/>
+    </g>
+  </svg>`;
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
+function applyPanelStyle() {
+  const right = F('voucher').querySelector('.voucher-right');
+  if (!right) return;
+  if (panelMode === 'diamond') {
+    const dataUrl = buildDiamondSVG(panelBg, panelDiamondColor);
+    right.style.background = panelBg;
+    right.style.backgroundImage = `url("${dataUrl}")`;
+    right.style.backgroundRepeat = 'repeat';
+    right.style.backgroundSize = '72px 84px';
+  } else {
+    right.style.background = currentAccent;
+    right.style.backgroundImage = 'repeating-linear-gradient(45deg,rgba(0,0,0,.06) 0 1px,transparent 1px 40px),repeating-linear-gradient(-45deg,rgba(0,0,0,.06) 0 1px,transparent 1px 40px)';
+    right.style.backgroundSize = '';
+  }
+}
+
+// Apply diamond pattern by default on load
+applyPanelStyle();
+
+F('panel-diamond').addEventListener('click', () => {
+  panelMode = 'diamond';
+  F('panel-diamond').classList.add('active');
+  F('panel-solid').classList.remove('active');
+  F('diamond-color-row').style.display = 'flex';
+  applyPanelStyle();
+});
+F('panel-solid').addEventListener('click', () => {
+  panelMode = 'solid';
+  F('panel-solid').classList.add('active');
+  F('panel-diamond').classList.remove('active');
+  F('diamond-color-row').style.display = 'none';
+  applyPanelStyle();
+});
+
+F('panel-bg-color').addEventListener('input', e => {
+  panelBg = e.target.value;
+  F('panel-bg-label').textContent = panelBg;
+  applyPanelStyle();
+});
+F('panel-diamond-color').addEventListener('input', e => {
+  panelDiamondColor = e.target.value;
+  F('panel-diamond-label').textContent = panelDiamondColor;
+  applyPanelStyle();
 });
 
 F('btn-regen').addEventListener('click', () => {

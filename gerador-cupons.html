@@ -153,6 +153,23 @@
   .voucher-right { background:var(--gold); background-image:repeating-linear-gradient(45deg,rgba(0,0,0,.06) 0 1px,transparent 1px 40px),repeating-linear-gradient(-45deg,rgba(0,0,0,.06) 0 1px,transparent 1px 40px); position:relative; }
   .voucher-right::before { content:''; position:absolute; inset:0; background-image:radial-gradient(circle at 25% 25%,rgba(255,255,255,.06) 0 2px,transparent 3px),radial-gradient(circle at 75% 75%,rgba(0,0,0,.05) 0 2px,transparent 3px); background-size:80px 80px,80px 80px; }
 
+  /* PERSONALIZAÇÃO VISUAL */
+  .custom-section { border:1px solid var(--line); border-radius:10px; margin-top:16px; overflow:hidden; }
+  .custom-section summary { padding:12px 16px; font-size:13px; font-weight:600; cursor:pointer; user-select:none; list-style:none; display:flex; align-items:center; gap:6px; }
+  .custom-section summary::-webkit-details-marker { display:none; }
+  .custom-section[open] summary { border-bottom:1px solid var(--line); }
+  .custom-body { padding:16px; display:flex; flex-direction:column; gap:14px; }
+  .color-swatches { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+  .swatch { width:32px; height:32px; border-radius:50%; border:3px solid transparent; cursor:pointer; transition:transform .15s,border-color .15s; flex-shrink:0; position:relative; }
+  .swatch:hover { transform:scale(1.15); }
+  .swatch.active { border-color:var(--ink) !important; }
+  .swatch--custom { display:flex; align-items:center; justify-content:center; background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red); font-size:16px; font-weight:700; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.5); }
+  .color-name { font-size:11px; color:var(--gray); margin-top:4px; }
+  .logo-options { display:flex; gap:8px; margin-top:6px; flex-wrap:wrap; }
+  .logo-opt { padding:8px 14px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12px; font-weight:500; background:white; cursor:pointer; transition:border-color .15s,background .15s; }
+  .logo-opt:hover { border-color:var(--gold); }
+  .logo-opt.active { border-color:var(--gold); background:#FFF9EF; }
+
   /* LIST */
   .toolbar { display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items:center; }
   .toolbar input, .toolbar select { padding:9px 12px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13px; background:white; }
@@ -337,6 +354,45 @@
             </div>
           </div>
           <div class="field"><label>Observações <span class="opt">(opcional)</span></label><textarea id="f-obs" placeholder="Notas internas…"></textarea></div>
+
+          <!-- PERSONALIZAÇÃO VISUAL -->
+          <details class="custom-section" id="custom-section">
+            <summary>🎨 Personalização visual</summary>
+            <div class="custom-body">
+
+              <div class="field">
+                <label>Paleta de cores</label>
+                <div class="color-swatches" id="color-swatches">
+                  <button class="swatch active" data-color="#B68B3C" data-name="Dourado (padrão)" style="background:#B68B3C;" title="Dourado (padrão)"></button>
+                  <button class="swatch" data-color="#C47E8A" data-name="Rosa" style="background:#C47E8A;" title="Rosa"></button>
+                  <button class="swatch" data-color="#7D9B76" data-name="Verde" style="background:#7D9B76;" title="Verde"></button>
+                  <button class="swatch" data-color="#5B7FA6" data-name="Azul" style="background:#5B7FA6;" title="Azul"></button>
+                  <button class="swatch" data-color="#8B6BA8" data-name="Roxo" style="background:#8B6BA8;" title="Roxo"></button>
+                  <button class="swatch" data-color="#1a1a1a" data-name="Preto" style="background:#1a1a1a;" title="Preto"></button>
+                  <label class="swatch swatch--custom" title="Cor personalizada">
+                    <span>+</span>
+                    <input type="color" id="custom-color" value="#B68B3C" style="opacity:0;position:absolute;width:0;height:0;">
+                  </label>
+                </div>
+                <div class="color-name" id="color-name">Dourado (padrão)</div>
+              </div>
+
+              <div class="field">
+                <label>Logo do cupom</label>
+                <div class="logo-options">
+                  <button class="logo-opt active" data-logo="lurech" id="logo-lurech">Studio Lu Rech</button>
+                  <button class="logo-opt" data-logo="custom" id="logo-custom">Enviar imagem…</button>
+                </div>
+                <input type="file" id="logo-upload" accept="image/*" style="display:none;">
+                <div id="logo-preview-wrap" style="display:none;margin-top:10px;">
+                  <img id="logo-preview-img" style="max-height:60px;max-width:200px;border-radius:4px;border:1px solid var(--line);padding:4px;background:#fff;" alt="logo">
+                  <button class="btn-mini" id="logo-remove" style="margin-left:8px;color:var(--danger);">✕</button>
+                </div>
+              </div>
+
+            </div>
+          </details>
+
           <div class="actions">
             <button class="btn btn-ghost" id="btn-clear">Limpar</button>
             <button class="btn btn-primary" id="btn-save">Salvar Cupom</button>
@@ -802,6 +858,85 @@ F('f-percentual').addEventListener('input', () => {
   }
   updatePreview();
 });
+// ── PERSONALIZAÇÃO VISUAL ────────────────────────────────────
+let currentAccent = '#B68B3C';
+let customLogoDataUrl = null;
+
+function applyAccentColor(hex) {
+  currentAccent = hex;
+  const voucher = F('voucher');
+  voucher.style.setProperty('--gold', hex);
+  // darker variant for hover/gradient
+  voucher.style.setProperty('--gold-dark', hex);
+}
+
+function applyLogoToVoucher(voucher) {
+  const logoEl = voucher.querySelector('.voucher-logo');
+  if (!logoEl) return;
+  if (customLogoDataUrl) {
+    logoEl.innerHTML = `<img src="${customLogoDataUrl}" style="max-height:70px;max-width:220px;object-fit:contain;" alt="logo">`;
+  } else {
+    logoEl.innerHTML = `<span class="l1">Studio</span><span class="l2">LU RECH</span>`;
+  }
+}
+
+// Color swatches
+document.querySelectorAll('.swatch[data-color]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    F('color-name').textContent = btn.dataset.name;
+    applyAccentColor(btn.dataset.color);
+  });
+});
+
+// Custom color picker
+F('custom-color').addEventListener('input', e => {
+  const hex = e.target.value;
+  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+  e.target.closest('.swatch--custom').classList.add('active');
+  F('color-name').textContent = 'Cor personalizada';
+  applyAccentColor(hex);
+});
+
+// Logo buttons
+F('logo-lurech').addEventListener('click', () => {
+  customLogoDataUrl = null;
+  F('logo-lurech').classList.add('active');
+  F('logo-custom').classList.remove('active');
+  F('logo-preview-wrap').style.display = 'none';
+  applyLogoToVoucher(F('voucher'));
+});
+
+F('logo-custom').addEventListener('click', () => {
+  F('logo-upload').click();
+});
+
+F('logo-upload').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    customLogoDataUrl = ev.target.result;
+    F('logo-preview-img').src = customLogoDataUrl;
+    F('logo-preview-wrap').style.display = 'flex';
+    F('logo-preview-wrap').style.alignItems = 'center';
+    F('logo-custom').classList.add('active');
+    F('logo-lurech').classList.remove('active');
+    applyLogoToVoucher(F('voucher'));
+  };
+  reader.readAsDataURL(file);
+});
+
+F('logo-remove').addEventListener('click', () => {
+  customLogoDataUrl = null;
+  F('logo-upload').value = '';
+  F('logo-preview-wrap').style.display = 'none';
+  F('logo-lurech').classList.add('active');
+  F('logo-custom').classList.remove('active');
+  applyLogoToVoucher(F('voucher'));
+});
+
 F('btn-regen').addEventListener('click', () => {
   if (!F('f-unidade').value) { toast('Selecione uma unidade primeiro'); return; }
   F('f-codigo').value = generateCode(F('f-unidade').value);

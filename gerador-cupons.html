@@ -172,6 +172,26 @@
   .logo-opt:hover { border-color:var(--gold); }
   .logo-opt.active { border-color:var(--gold); background:#FFF9EF; }
 
+  /* FINANCEIRO */
+  .fin-drop { border:2px dashed var(--line);border-radius:10px;padding:28px 20px;text-align:center;cursor:pointer;transition:border-color .15s;background:var(--bg); }
+  .fin-drop:hover { border-color:var(--gold); }
+  .fin-status { margin-top:10px;font-size:12px;color:var(--gray);min-height:18px; }
+  .status-badge { display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap; }
+  .status-badge.conciliado { background:#D4EDDA;color:#155724; }
+  .status-badge.manual { background:#FFF4DC;color:#8C6A2A; }
+  .status-badge.nao-conciliado { background:#FCE3E3;color:#8B2A2A; }
+  .obs-cell { display:flex;align-items:center;gap:6px; }
+  .obs-text { flex:1;font-size:12px;color:#555; }
+  .obs-input { width:100%;padding:4px 8px;border:1px solid var(--gold);border-radius:6px;font-family:inherit;font-size:12px; }
+  .diff-ok { background:#D4EDDA;padding:2px 6px;border-radius:4px;font-size:11px; }
+  .diff-warn { background:#FFF4DC;padding:2px 6px;border-radius:4px;font-size:11px; }
+  .diff-err { background:#FCE3E3;padding:2px 6px;border-radius:4px;font-size:11px; }
+  .panel-compare { display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px; }
+  .panel-col h3 { font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray);margin-bottom:10px; }
+  .panel-field { margin-bottom:10px; }
+  .panel-field label { font-size:10px;font-weight:600;text-transform:uppercase;color:var(--gray);display:block;margin-bottom:2px; }
+  .panel-field .val { font-size:13px;font-weight:500;padding:4px 8px;border-radius:6px; }
+
   /* LIST */
   .toolbar { display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items:center; }
   .toolbar input, .toolbar select { padding:9px 12px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13px; background:white; }
@@ -501,59 +521,85 @@
 
     <!-- FINANCEIRO -->
     <section class="view" id="view-financeiro">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
-        <!-- Upload Forms -->
-        <div class="panel">
-          <h2>Planilha Google Forms</h2>
-          <div id="drop-forms" style="border:2px dashed var(--line);border-radius:10px;padding:28px 20px;text-align:center;cursor:pointer;transition:border-color .15s;background:var(--bg);">
-            <div style="font-size:28px;margin-bottom:8px;">📋</div>
-            <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Arraste o arquivo aqui</div>
-            <div style="font-size:12px;color:var(--gray);">ou clique para selecionar (.csv ou .xlsx)</div>
-            <input type="file" id="file-forms" accept=".csv,.xlsx,.xls" style="display:none;">
+      <!-- STEP 1: Upload -->
+      <div id="fin-step-upload">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+          <div class="panel">
+            <h2>📋 Planilha Google Forms</h2>
+            <div id="drop-forms" class="fin-drop">
+              <div style="font-size:28px;margin-bottom:8px;">📋</div>
+              <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Arraste o arquivo aqui</div>
+              <div style="font-size:12px;color:var(--gray);">ou clique para selecionar (.csv ou .xlsx)</div>
+              <input type="file" id="file-forms" accept=".csv,.xlsx,.xls" style="display:none;">
+            </div>
+            <div id="forms-status" class="fin-status"></div>
           </div>
-          <div id="forms-status" style="margin-top:10px;font-size:12px;color:var(--gray);min-height:18px;"></div>
-        </div>
-        <!-- Upload Trinks -->
-        <div class="panel">
-          <h2>Planilha Trinks</h2>
-          <div id="drop-trinks" style="border:2px dashed var(--line);border-radius:10px;padding:28px 20px;text-align:center;cursor:pointer;transition:border-color .15s;background:var(--bg);">
-            <div style="font-size:28px;margin-bottom:8px;">📊</div>
-            <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Arraste o arquivo aqui</div>
-            <div style="font-size:12px;color:var(--gray);">ou clique para selecionar (.csv ou .xlsx)</div>
-            <input type="file" id="file-trinks" accept=".csv,.xlsx,.xls" style="display:none;">
-          </div>
-          <div id="trinks-status" style="margin-top:10px;font-size:12px;color:var(--gray);min-height:18px;"></div>
-        </div>
-      </div>
-
-      <div style="text-align:center;margin-bottom:24px;">
-        <button id="btn-cruzar" class="btn btn-primary" style="padding:14px 40px;font-size:15px;max-width:280px;" disabled>Cruzar Dados</button>
-      </div>
-
-      <!-- Resultados -->
-      <div id="fin-results" style="display:none;">
-        <!-- Stats -->
-        <div class="stats" style="grid-template-columns:repeat(6,1fr);margin-bottom:18px;" id="fin-stats"></div>
-
-        <!-- Divergências -->
-        <div class="panel" style="padding:0;">
-          <div style="padding:16px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;">
-            <h2 style="margin:0;padding:0;border:none;">Divergências encontradas</h2>
-            <div style="display:flex;gap:8px;align-items:center;">
-              <select id="fin-filter-tipo" style="padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:12px;background:white;">
-                <option value="">Todos os tipos</option>
-                <option value="1">Desconto não aplicado no Trinks</option>
-                <option value="2">Desconto sem autorização no Forms</option>
-                <option value="3">Divergência de porcentagem</option>
-                <option value="4">Divergência de motivo</option>
-                <option value="5">Divergência de quem liberou</option>
+          <div class="panel">
+            <h2>📊 Planilha Trinks</h2>
+            <div id="drop-trinks" class="fin-drop">
+              <div style="font-size:28px;margin-bottom:8px;">📊</div>
+              <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Arraste o arquivo aqui</div>
+              <div style="font-size:12px;color:var(--gray);">ou clique para selecionar (.csv ou .xlsx)</div>
+              <input type="file" id="file-trinks" accept=".csv,.xlsx,.xls" style="display:none;">
+            </div>
+            <div id="trinks-status" class="fin-status"></div>
+            <div id="trinks-unidade-wrap" style="display:none;margin-top:12px;">
+              <label style="font-size:12px;font-weight:600;display:block;margin-bottom:6px;">Unidade desta planilha Trinks *</label>
+              <select id="trinks-unidade" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;background:white;">
+                <option value="">Selecione…</option>
+                <option>Barra Prime</option><option>Moema</option>
+                <option>Copacabana</option><option>Leblon</option><option>Blue Center</option>
               </select>
-              <button id="btn-export-fin" class="btn btn-secondary" style="flex:0 0 auto;padding:9px 16px;font-size:12px;">↓ Exportar Excel</button>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:center;margin-bottom:24px;">
+          <button id="btn-cruzar" class="btn btn-primary" style="padding:14px 40px;font-size:15px;max-width:320px;" disabled>🔍 Executar Conciliação</button>
+        </div>
+      </div>
+
+      <!-- RESULTS -->
+      <div id="fin-results" style="display:none;">
+        <!-- Dashboard -->
+        <div class="stats" style="grid-template-columns:repeat(5,1fr);margin-bottom:20px;" id="fin-stats"></div>
+
+        <!-- Toolbar -->
+        <div class="panel" style="padding:0;">
+          <div style="padding:14px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <input type="search" id="fin-search" placeholder="🔍 Buscar por cliente, telefone, unidade…" style="flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;">
+            <select id="fin-filter-status" style="padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;background:white;">
+              <option value="">Todos os status</option>
+              <option value="conciliado">✅ Conciliado</option>
+              <option value="manual">⚠️ Conferência Manual</option>
+              <option value="nao-conciliado">❌ Não conciliado</option>
+            </select>
+            <select id="fin-filter-unidade" style="padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;background:white;">
+              <option value="">Todas as unidades</option>
+            </select>
+            <button id="btn-nova-conciliacao" class="btn btn-ghost" style="padding:9px 16px;font-size:12px;">↩ Nova conciliação</button>
+            <div style="display:flex;gap:6px;">
+              <button id="btn-export-xlsx" class="btn btn-secondary" style="padding:9px 14px;font-size:12px;">↓ Excel</button>
+              <button id="btn-export-csv" class="btn btn-secondary" style="padding:9px 14px;font-size:12px;">↓ CSV</button>
             </div>
           </div>
           <div id="fin-table-container" style="overflow-x:auto;"></div>
         </div>
       </div>
+
+      <!-- SIDE PANEL -->
+      <div id="fin-side-panel" style="display:none;position:fixed;top:0;right:0;width:560px;height:100vh;background:white;box-shadow:-4px 0 24px rgba(0,0,0,.15);z-index:900;overflow-y:auto;display:flex;flex-direction:column;">
+        <div style="padding:20px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+          <h2 style="margin:0;padding:0;border:none;font-size:16px;">Revisão Manual</h2>
+          <button id="fin-panel-close" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray);">✕</button>
+        </div>
+        <div id="fin-panel-body" style="padding:24px;flex:1;"></div>
+        <div style="padding:16px 24px;border-top:1px solid var(--line);display:flex;gap:10px;flex-shrink:0;">
+          <button id="fin-panel-conciliado" class="btn" style="flex:1;background:#2A6B3F;color:white;padding:10px;">✅ Conciliado</button>
+          <button id="fin-panel-manual" class="btn" style="flex:1;background:#8C6A2A;color:white;padding:10px;">⚠️ Manual</button>
+          <button id="fin-panel-nao" class="btn" style="flex:1;background:#8B2A2A;color:white;padding:10px;">❌ Não conciliado</button>
+        </div>
+      </div>
+      <div id="fin-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:899;" ></div>
     </section>
 
     <!-- USERS -->
@@ -1536,76 +1582,93 @@ F('btn-change-pwd').addEventListener('click', async () => {
 
 // ── FINANCEIRO ───────────────────────────────────────────────
 (function(){
-  let dadosForms = null, dadosTrinks = null, divergencias = [], todosResultados = [];
+  let dadosForms = null, dadosTrinks = null, resultados = [], filtrados = [], panelIdx = null;
 
-  // ---- Normalização ----
-  function normNome(s){
-    if(!s) return '';
-    return s.toLowerCase()
-      .normalize('NFD').replace(/[̀-ͯ]/g,'')
-      .replace(/[^a-z\s]/g,'').trim();
-  }
+  // ═══════════════════════════════════════════════════════════
+  // NORMALIZAÇÃO
+  // ═══════════════════════════════════════════════════════════
+  function norm(s){ return s?s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim():''; }
+  function normNome(s){ return norm(s); }
   function normUnidade(s){
     if(!s) return '';
-    const m = {
-      'barra prime':'barra','barra':'barra','bar':'barra',
-      'moema':'moema','moe':'moema',
-      'copacabana':'copa','copa':'copa','cop':'copa',
-      'leblon':'leblon','leb':'leblon',
-      'blue center':'blue','blue':'blue','blu':'blue','blueCenter':'blue'
-    };
-    const k = s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
-    return m[k] || k;
-  }
-  function normMotivo(s){
-    if(!s) return '';
-    return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+    const map = {'barra prime':'barra','barra prime_':'barra','moema':'moema','copacabana':'copa','copa':'copa','leblon':'leblon','blue center':'blue','blue center_':'blue'};
+    const k = norm(s);
+    for(const key of Object.keys(map)){ if(k.startsWith(norm(key).split('_')[0])) return map[key]; }
+    return k;
   }
   function extrairPct(s){
-    if(!s && s!==0) return null;
-    if(typeof s === 'number') return s;
+    if(s===null||s===undefined||s==='') return null;
+    if(typeof s==='number') return s;
     const m = String(s).match(/(\d+([.,]\d+)?)/);
     return m ? parseFloat(m[1].replace(',','.')) : null;
   }
   function normData(s){
     if(!s) return '';
-    // tenta vários formatos
-    if(typeof s === 'number'){
-      // serial do Excel
-      const d = new Date(Math.round((s-25569)*86400*1000));
-      return d.toISOString().slice(0,10);
-    }
-    const str = String(s).trim();
-    // dd/mm/yyyy ou dd/mm/yy
-    let m = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
-    if(m){
-      let y = m[3]; if(y.length===2) y='20'+y;
-      return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
-    }
-    // yyyy-mm-dd
+    if(typeof s==='number'){ const d=new Date(Math.round((s-25569)*86400*1000)); return d.toISOString().slice(0,10); }
+    const str=String(s).trim();
+    const m=str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+    if(m){ let y=m[3]; if(y.length===2)y='20'+y; return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`; }
     if(/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0,10);
-    const d = new Date(str);
-    if(!isNaN(d)) return d.toISOString().slice(0,10);
-    return str;
+    const d=new Date(str); return isNaN(d)?str:d.toISOString().slice(0,10);
+  }
+  function normPhone(s){
+    if(!s) return '';
+    const d = String(s).replace(/\D/g,'');
+    return d.slice(-8); // últimos 8 dígitos
+  }
+  function fmtDate(iso){ if(!iso) return '—'; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; }
+
+  // ═══════════════════════════════════════════════════════════
+  // SIMILARIDADE DE NOMES
+  // ═══════════════════════════════════════════════════════════
+  function nameScore(a, b){
+    a=normNome(a); b=normNome(b);
+    if(!a||!b) return 0;
+    if(a===b) return 1.0;
+    if(a.includes(b)||b.includes(a)) return 0.92;
+    const wa=a.split(' ').filter(w=>w.length>2);
+    const wb=b.split(' ').filter(w=>w.length>2);
+    const comuns=wa.filter(w=>wb.includes(w)).length;
+    const total=Math.max(wa.length,wb.length)||1;
+    if(comuns/total>=0.6) return 0.85;
+    if(comuns>=1 && wa[0]===wb[0]) return 0.75; // mesmo primeiro nome e 1 sobrenome
+    // bigrama
+    function bg(s){ const r=new Set(); for(let i=0;i<s.length-1;i++) r.add(s.slice(i,i+2)); return r; }
+    const ba=bg(a.replace(/\s/g,'')), bb=bg(b.replace(/\s/g,''));
+    let inter=0; ba.forEach(g=>{if(bb.has(g))inter++;});
+    return (2*inter)/((ba.size+bb.size)||1);
   }
 
-  // ---- Similaridade de nomes (Jaro-Winkler simplificado) ----
-  function similaridade(a, b){
-    a = normNome(a); b = normNome(b);
-    if(a===b) return 1;
-    if(!a||!b) return 0;
-    // verifica se um contém o outro
-    if(a.includes(b)||b.includes(a)) return 0.92;
-    // verifica palavras em comum
-    const wa = a.split(/\s+/), wb = b.split(/\s+/);
-    const comuns = wa.filter(w=>w.length>2&&wb.includes(w)).length;
-    const totalMax = Math.max(wa.length,wb.length);
-    if(comuns/totalMax>=0.5) return 0.85;
-    // Bigrama
-    function bigrams(str){ const bg=new Set(); for(let i=0;i<str.length-1;i++) bg.add(str.slice(i,i+2)); return bg; }
-    const ba=bigrams(a.replace(/\s/g,'')), bb=bigrams(b.replace(/\s/g,''));
-    let inter=0; ba.forEach(g=>{if(bb.has(g))inter++;});
-    return (2*inter)/(ba.size+bb.size) || 0;
+  // ═══════════════════════════════════════════════════════════
+  // SCORE COMPOSTO ENTRE UM REGISTRO TRINKS E UM FORMS
+  // ═══════════════════════════════════════════════════════════
+  function calcScore(t, f){
+    const sNome = nameScore(t.nome, f.nome);               // peso 0.50
+    // Telefone: reforço quando ambos existem
+    const tp=normPhone(t.telefone||''), fp=normPhone(f.telefone||'');
+    const sFone = (tp&&fp) ? (tp===fp?1:0) : 0.5;         // peso 0.15
+    // Unidade
+    const tu=normUnidade(t.unidade), fu=normUnidade(f.unidade);
+    const sUnit = (!tu||!fu)?0.5:(tu===fu?1:0);            // peso 0.15
+    // Motivo
+    const tm=norm(t.motivo), fm=norm(f.motivo);
+    const sMot = (!tm||!fm)?0.5:(tm===fm?1:(tm.includes(fm)||fm.includes(tm)?0.7:0.2)); // peso 0.10
+    // Percentual
+    const pctT=t.pctReal, pctF=f.pct;
+    let sPct=0.5;
+    if(pctT!==null&&pctF!==null){ const diff=Math.abs(pctT-pctF); sPct=diff<=1?1:diff<=3?0.7:diff<=10?0.4:0; }
+    // Score final
+    return sNome*0.50 + sFone*0.15 + sUnit*0.15 + sMot*0.10 + sPct*0.10;
+  }
+
+  function classifyDiff(val1, val2, tol){
+    if(!val1&&!val2) return 'ok';
+    if(!val1||!val2) return 'warn';
+    if(typeof tol==='number') return Math.abs(val1-val2)<=tol?'ok':Math.abs(val1-val2)<=tol*3?'warn':'err';
+    const s1=norm(String(val1)), s2=norm(String(val2));
+    if(s1===s2) return 'ok';
+    if(s1.includes(s2)||s2.includes(s1)) return 'warn';
+    return 'err';
   }
 
   // ---- Parse de arquivo ----
@@ -1625,9 +1688,10 @@ F('btn-change-pwd').addEventListener('click', async () => {
     });
   }
 
-  // ---- Mapear colunas do Forms ----
+  // ═══════════════════════════════════════════════════════════
+  // MAPEAMENTO DE COLUNAS
+  // ═══════════════════════════════════════════════════════════
   function mapForms(row){
-    // detecta os nomes de colunas de forma flexível
     const keys = Object.keys(row);
     const find = (...terms) => keys.find(k => terms.some(t => k.toLowerCase().includes(t.toLowerCase()))) || '';
     return {
@@ -1664,175 +1728,248 @@ F('btn-change-pwd').addEventListener('click', async () => {
     };
   }
 
-  // ---- Cruzamento principal ----
-  function cruzar(forms, trinks){
+  // ═══════════════════════════════════════════════════════════
+  // ALGORITMO DE CONCILIAÇÃO INTELIGENTE
+  // ═══════════════════════════════════════════════════════════
+  function reconciliar(forms, trinks, unidadeTrinks){
     const fRows = forms.map(mapForms).filter(r=>r.nome);
-    const tRows = trinks.map(mapTrinks).filter(r=>r.nome);
-    const divs = [];
-    const tUsados = new Set();
+    const tRows = trinks.map(r=>{ const m=mapTrinks(r); if(unidadeTrinks&&!m.unidade) m.unidade=normUnidade(unidadeTrinks); return m; }).filter(r=>r.nome);
+    const res = [];
+    const fUsadas = new Set();
+    let uid = 0;
 
-    fRows.forEach((f,fi)=>{
-      // busca match no Trinks
-      let melhor = null, melhorScore = 0;
-      tRows.forEach((t,ti)=>{
-        const sNome = similaridade(f.nome, t.nome);
-        const sData = f.dataApp && t.data ? (f.dataApp===t.data?1:(Math.abs(new Date(f.dataApp)-new Date(t.data))<3*86400000?0.7:0)):0.5;
-        const sUnid = f.unidade && t.unidade ? (f.unidade===t.unidade?1:0) : 0.5;
-        const score = sNome*0.5 + sData*0.3 + sUnid*0.2;
-        if(score>melhorScore){ melhorScore=score; melhor={t,ti}; }
-      });
+    // Para cada registro Trinks: buscar candidatos no Forms
+    tRows.forEach((t, ti) => {
+      const candidatos = fRows
+        .map((f, fi) => ({ f, fi, score: calcScore(t, f) }))
+        .filter(c => c.score >= 0.40)
+        .sort((a, b) => b.score - a.score);
 
-      const matched = melhorScore >= 0.6 ? melhor : null;
+      let status, fRow = null, score = 0, obs = '';
 
-      if(!matched){
-        // Tipo 1: Forms sem Trinks
-        divs.push({
-          tipo:'1',
-          tipodesc:'Desconto no Forms, mas NÃO no Trinks',
-          cliente: f.nome,
-          data: f.dataApp,
-          unidade: f.unidade,
-          formsPct: f.pct!=null?f.pct+'%':'—',
-          formsMotivo: f.motivo,
-          formsLiberadoPor: f.liberadoPor,
-          trinksPct:'—', trinksMotivo:'—', trinksQuemFechou:'—',
-          obs:`Desconto de ${f.pct!=null?f.pct+'%':'?'} autorizado por ${f.liberadoPor||'?'} (${f.motivo||'?'}) não encontrado no Trinks`
-        });
+      if (!candidatos.length) {
+        status = 'nao-conciliado';
+        obs = t.temDesconto ? 'Desconto no Trinks sem autorização no Forms' : 'Sem correspondência no Forms';
       } else {
-        const {t,ti} = matched;
-        tUsados.add(ti);
-        if(!t.temDesconto){
-          // Tipo 1 variante: tem match mas sem desconto no Trinks
-          divs.push({
-            tipo:'1', tipodesc:'Desconto no Forms, mas NÃO no Trinks',
-            cliente:f.nome, data:f.dataApp, unidade:f.unidade,
-            formsPct:f.pct!=null?f.pct+'%':'—', formsMotivo:f.motivo, formsLiberadoPor:f.liberadoPor,
-            trinksPct:'0%', trinksMotivo:'sem desconto', trinksQuemFechou:t.quemFechou,
-            obs:`Forms registra ${f.pct!=null?f.pct+'%':'desconto'} mas Trinks não aplicou nenhum desconto`
-          });
+        const top = candidatos[0];
+        const segundo = candidatos[1];
+        const ambiguo = segundo && (top.score - segundo.score) < 0.10;
+        if (top.score >= 0.72 && !ambiguo) {
+          status = 'conciliado';
+          fRow = top.f;
+          score = top.score;
+          fUsadas.add(top.fi);
+          // Gerar obs automática de divergências
+          const diffs = [];
+          if (fRow.pct !== null && t.pctReal !== null && Math.abs(fRow.pct - t.pctReal) > 1)
+            diffs.push(`% divergente: Forms ${fRow.pct}% / Trinks ${t.pctReal}%`);
+          if (fRow.motivo && t.motivo && norm(fRow.motivo) !== norm(t.motivo))
+            diffs.push(`Motivo: "${fRow.motivo}" / "${t.motivo}"`);
+          if (fRow.unidade && t.unidade && normUnidade(fRow.unidade) !== normUnidade(t.unidade))
+            diffs.push(`Unidade: Forms "${fRow.unidade}" / Trinks "${t.unidade}"`);
+          obs = diffs.length ? diffs.join(' · ') : 'OK';
         } else {
-          // Tipo 3: divergência de porcentagem
-          if(f.pct!=null && Math.abs(f.pct - t.pctReal)>1){
-            divs.push({
-              tipo:'3', tipodesc:'Divergência de porcentagem',
-              cliente:f.nome, data:f.dataApp, unidade:f.unidade,
-              formsPct:f.pct+'%', formsMotivo:f.motivo, formsLiberadoPor:f.liberadoPor,
-              trinksPct:t.pctReal+'%', trinksMotivo:t.motivo, trinksQuemFechou:t.quemFechou,
-              obs:`Forms autoriza ${f.pct}% mas Trinks aplicou ${t.pctReal}%`
-            });
-          }
-          // Tipo 4: divergência de motivo
-          if(f.motivo && t.motivo && normMotivo(f.motivo)!==normMotivo(t.motivo) && similaridade(f.motivo,t.motivo)<0.7){
-            divs.push({
-              tipo:'4', tipodesc:'Divergência de motivo',
-              cliente:f.nome, data:f.dataApp, unidade:f.unidade,
-              formsPct:f.pct!=null?f.pct+'%':'—', formsMotivo:f.motivo, formsLiberadoPor:f.liberadoPor,
-              trinksPct:t.pctReal+'%', trinksMotivo:t.motivo, trinksQuemFechou:t.quemFechou,
-              obs:`Motivo Forms: "${f.motivo}" vs Trinks: "${t.motivo}"`
-            });
-          }
-          // Tipo 5: divergência de quem liberou
-          if(f.liberadoPor && t.quemFechou && similaridade(f.liberadoPor,t.quemFechou)<0.7){
-            divs.push({
-              tipo:'5', tipodesc:'Divergência de quem liberou',
-              cliente:f.nome, data:f.dataApp, unidade:f.unidade,
-              formsPct:f.pct!=null?f.pct+'%':'—', formsMotivo:f.motivo, formsLiberadoPor:f.liberadoPor,
-              trinksPct:t.pctReal+'%', trinksMotivo:t.motivo, trinksQuemFechou:t.quemFechou,
-              obs:`Forms: liberado por "${f.liberadoPor}" / Trinks: fechado por "${t.quemFechou}"`
-            });
-          }
+          status = 'manual';
+          fRow = top.f;
+          score = top.score;
+          obs = ambiguo
+            ? `${candidatos.length} possíveis correspondências — conferência manual`
+            : `Correspondência incerta (score ${(top.score*100).toFixed(0)}%) — conferência manual`;
         }
       }
+
+      res.push({ id: uid++, status, obs, tRow: t, fRow, candidates: candidatos, score, type: 'trinks' });
     });
 
-    // Tipo 2: Trinks com desconto sem Forms
-    tRows.forEach((t,ti)=>{
-      if(!tUsados.has(ti) && t.temDesconto){
-        divs.push({
-          tipo:'2', tipodesc:'Desconto no Trinks, mas NÃO no Forms',
-          cliente:t.nome, data:t.data, unidade:t.unidade,
-          formsPct:'—', formsMotivo:'—', formsLiberadoPor:'—',
-          trinksPct:t.pctReal+'%', trinksMotivo:t.motivo, trinksQuemFechou:t.quemFechou,
-          obs:`Desconto de ${t.pctReal}% aplicado no Trinks sem registro no Forms`
+    // Forms sem correspondência Trinks = autorização não utilizada
+    fRows.forEach((f, fi) => {
+      if (!fUsadas.has(fi)) {
+        res.push({
+          id: uid++, status: 'nao-conciliado',
+          obs: 'Autorização no Forms não encontrada no Trinks',
+          tRow: null, fRow: f, candidates: [], score: 0, type: 'forms-only'
         });
       }
     });
 
-    return { divs, fRows, tRows };
+    return res;
   }
 
-  // ---- Renderiza tabela ----
+  // ═══════════════════════════════════════════════════════════
+  // RENDER TABELA
+  // ═══════════════════════════════════════════════════════════
+  function statusBadge(s){
+    const map = { conciliado:'✅ Conciliado', manual:'⚠️ Conferência Manual', 'nao-conciliado':'❌ Não conciliado' };
+    return `<span class="status-badge ${s}">${map[s]||s}</span>`;
+  }
+
   function renderTabela(lista){
-    if(!lista.length){
-      document.getElementById('fin-table-container').innerHTML =
-        '<div style="padding:40px;text-align:center;color:var(--gray);">Nenhuma divergência encontrada 🎉</div>';
+    const cont = document.getElementById('fin-table-container');
+    if (!lista.length) {
+      cont.innerHTML = '<div style="padding:40px;text-align:center;color:var(--gray);">Nenhum registro encontrado</div>';
       return;
     }
-    const cores = {'1':'#8B2A2A','2':'#7A4A00','3':'#1a4a7a','4':'#3a1a7a','5':'#1a7a4a'};
-    const rows = lista.map(d=>`<tr>
-      <td style="font-weight:600;">${escapeHTML(d.cliente)}</td>
-      <td>${escapeHTML(d.data)}</td>
-      <td>${escapeHTML(d.unidade)}</td>
-      <td><span style="background:${cores[d.tipo]||'#555'};color:white;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;">Tipo ${d.tipo}</span><br><span style="font-size:11px;color:var(--gray);">${escapeHTML(d.tipodesc)}</span></td>
-      <td style="font-size:12px;">${escapeHTML(d.formsPct)}<br><span style="color:var(--gray);">${escapeHTML(d.formsMotivo)}</span><br><span style="color:var(--gray);">${escapeHTML(d.formsLiberadoPor)}</span></td>
-      <td style="font-size:12px;">${escapeHTML(d.trinksPct)}<br><span style="color:var(--gray);">${escapeHTML(d.trinksMotivo)}</span><br><span style="color:var(--gray);">${escapeHTML(d.trinksQuemFechou)}</span></td>
-      <td style="font-size:12px;color:#555;">${escapeHTML(d.obs)}</td>
-    </tr>`).join('');
-    document.getElementById('fin-table-container').innerHTML = `
-      <table style="border-radius:0;border:none;font-size:13px;">
-        <thead><tr>
-          <th>Cliente</th><th>Data</th><th>Unidade</th><th>Tipo de Divergência</th>
-          <th>Forms (%, motivo, liberado por)</th><th>Trinks (%, motivo, quem fechou)</th><th>Observação</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>`;
+    const rows = lista.map(r => {
+      const t = r.tRow, f = r.fRow;
+      const cliente = t ? t.nome : (f ? f.nome : '—');
+      const data = t ? fmtDate(t.data) : (f ? fmtDate(f.dataApp) : '—');
+      const unidade = (t && t.unidade) || (f && f.unidade) || '—';
+      const catT = t ? escapeHTML(t.motivo||'—') : '—';
+      const catF = f ? escapeHTML(f.motivo||'—') : '—';
+      const valServ = t ? `R$ ${t.totalServ.toFixed(2)}` : '—';
+      const valDesc = t ? `R$ ${t.descVal.toFixed(2)}` : '—';
+      const pctT = t ? `${t.pctReal}%` : '—';
+      const pctF = f && f.pct !== null ? `${f.pct}%` : '—';
+      const liberou = f ? escapeHTML(f.liberadoPor||'—') : '—';
+      const fechou = t ? escapeHTML(t.quemFechou||'—') : '—';
+      return `<tr style="cursor:pointer;" onclick="window.finOpenPanel(${r.id})">
+        <td>${statusBadge(r.status)}</td>
+        <td style="white-space:nowrap;">${escapeHTML(data)}</td>
+        <td style="font-weight:600;">${escapeHTML(cliente)}</td>
+        <td style="font-size:12px;">${escapeHTML(unidade)}</td>
+        <td style="font-size:12px;">${catT}</td>
+        <td style="font-size:12px;">${catF}</td>
+        <td style="font-size:12px;">${valServ}</td>
+        <td style="font-size:12px;">${valDesc}</td>
+        <td style="font-size:12px;">${pctT}</td>
+        <td style="font-size:12px;">${pctF}</td>
+        <td style="font-size:12px;">${liberou}</td>
+        <td style="font-size:12px;">${fechou}</td>
+        <td style="min-width:160px;">
+          <div class="obs-cell">
+            <span class="obs-text" id="obs-text-${r.id}">${escapeHTML(r.obs)}</span>
+            <button class="btn-mini" onclick="event.stopPropagation();window.finEditObs(${r.id})" title="Editar observação">✏️</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+    cont.innerHTML = `<table style="border-radius:0;border:none;font-size:13px;min-width:1200px;">
+      <thead><tr>
+        <th>Status</th><th>Data</th><th>Cliente</th><th>Unidade</th>
+        <th>Cat. Trinks</th><th>Cat. Forms</th><th>Vl. Serviço</th><th>Vl. Desconto</th>
+        <th>% Trinks</th><th>% Forms</th><th>Liberou</th><th>Fechou</th><th>Observação</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
   }
 
-  // ---- Renderiza stats ----
-  function renderStats(fRows, tRows, divs){
-    const t1=divs.filter(d=>d.tipo==='1').length, t2=divs.filter(d=>d.tipo==='2').length;
-    const t3=divs.filter(d=>d.tipo==='3').length, t4=divs.filter(d=>d.tipo==='4').length, t5=divs.filter(d=>d.tipo==='5').length;
-    const totalMatch = fRows.length - t1;
-    const conformidade = fRows.length>0 ? Math.round((totalMatch/fRows.length)*100) : 0;
+  // ═══════════════════════════════════════════════════════════
+  // RENDER STATS
+  // ═══════════════════════════════════════════════════════════
+  function renderStats(res){
+    const total = res.length;
+    const conc = res.filter(r=>r.status==='conciliado').length;
+    const manual = res.filter(r=>r.status==='manual').length;
+    const nao = res.filter(r=>r.status==='nao-conciliado').length;
+    const pct = total ? Math.round((conc/total)*100) : 0;
     document.getElementById('fin-stats').innerHTML = `
-      <div class="stat-card"><div class="stat-num">${fRows.length}</div><div class="stat-label">Registros Forms</div></div>
-      <div class="stat-card"><div class="stat-num">${tRows.length}</div><div class="stat-label">Registros Trinks</div></div>
-      <div class="stat-card" style="border-top:3px solid #8B2A2A;"><div class="stat-num" style="color:#8B2A2A;">${t1+t2}</div><div class="stat-label">Sem correspondência</div></div>
-      <div class="stat-card" style="border-top:3px solid #1a4a7a;"><div class="stat-num" style="color:#1a4a7a;">${t3+t4+t5}</div><div class="stat-label">Divergências de dados</div></div>
-      <div class="stat-card" style="border-top:3px solid #2A6A3A;"><div class="stat-num" style="color:#2A6A3A;">${conformidade}%</div><div class="stat-label">Taxa de conformidade</div></div>
-      <div class="stat-card"><div class="stat-num">${divs.length}</div><div class="stat-label">Total de divergências</div></div>`;
+      <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total analisado</div></div>
+      <div class="stat-card" style="border-top:3px solid #155724;"><div class="stat-num" style="color:#155724;">${conc}</div><div class="stat-label">✅ Conciliados</div></div>
+      <div class="stat-card" style="border-top:3px solid #8C6A2A;"><div class="stat-num" style="color:#8C6A2A;">${manual}</div><div class="stat-label">⚠️ Conf. Manual</div></div>
+      <div class="stat-card" style="border-top:3px solid #8B2A2A;"><div class="stat-num" style="color:#8B2A2A;">${nao}</div><div class="stat-label">❌ Não conciliados</div></div>
+      <div class="stat-card" style="border-top:3px solid var(--gold);"><div class="stat-num" style="color:var(--gold);">${pct}%</div><div class="stat-label">Taxa de conciliação</div></div>`;
   }
 
-  function renderFinanceiro(){
-    // já montado estaticamente no HTML, só ativa os eventos se ainda não foram
+  // ═══════════════════════════════════════════════════════════
+  // PAINEL LATERAL
+  // ═══════════════════════════════════════════════════════════
+  function diffClass(c){ return c==='ok'?'diff-ok':c==='warn'?'diff-warn':'diff-err'; }
+  function fieldRow(label, v1, v2, diff){
+    return `<div class="panel-field">
+      <label>${label}</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <span class="val ${diffClass(diff)}">${escapeHTML(String(v1||'—'))}</span>
+        <span class="val ${diffClass(diff)}">${escapeHTML(String(v2||'—'))}</span>
+      </div>
+    </div>`;
   }
-  window.renderFinanceiro = renderFinanceiro;
 
-  // ---- Setup drag & drop e upload ----
+  window.finOpenPanel = function(id){
+    const r = resultados.find(x=>x.id===id);
+    if(!r) return;
+    panelIdx = id;
+    const t = r.tRow, f = r.fRow;
+    const dNome = classifyDiff(t&&t.nome, f&&f.nome, null);
+    const dUnit = classifyDiff(t&&t.unidade, f&&f.unidade, null);
+    const dMot  = classifyDiff(t&&t.motivo, f&&f.motivo, null);
+    const dPct  = classifyDiff(t&&t.pctReal, f&&f.pct, 1);
+    document.getElementById('fin-panel-body').innerHTML = `
+      <div style="margin-bottom:16px;">${statusBadge(r.status)}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:8px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray);padding:6px 0;">Trinks</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray);padding:6px 0;">Google Forms</div>
+      </div>
+      ${fieldRow('Cliente', t&&t.nome, f&&f.nome, dNome)}
+      ${fieldRow('Unidade', t&&t.unidade, f&&f.unidade, dUnit)}
+      ${fieldRow('Motivo', t&&t.motivo, f&&f.motivo, dMot)}
+      ${fieldRow('Percentual', t?(t.pctReal+'%'):'—', f&&f.pct!==null?(f.pct+'%'):'—', dPct)}
+      ${fieldRow('Vl. Desconto', t?('R$ '+t.descVal.toFixed(2)):'—', '—', 'ok')}
+      ${fieldRow('Data', t?fmtDate(t.data):'—', f?fmtDate(f.dataApp):'—', 'ok')}
+      ${fieldRow('Quem fechou / Liberou', t&&t.quemFechou, f&&f.liberadoPor, 'ok')}
+      <hr style="margin:16px 0;border:none;border-top:1px solid var(--line);">
+      <div class="field">
+        <label style="font-size:12px;font-weight:600;display:block;margin-bottom:6px;">Observação</label>
+        <textarea id="panel-obs-input" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;resize:vertical;min-height:70px;">${escapeHTML(r.obs)}</textarea>
+      </div>
+      ${r.candidates.length>1?`<div style="margin-top:12px;font-size:11px;color:var(--gray);">${r.candidates.length} candidatos encontrados (score: ${r.candidates.map(c=>(c.score*100).toFixed(0)+'%').join(', ')})</div>`:''}
+    `;
+    const panel = document.getElementById('fin-side-panel');
+    const overlay = document.getElementById('fin-overlay');
+    panel.style.display = 'flex';
+    overlay.style.display = 'block';
+  };
+
+  function closePanel(){
+    // Salva obs editada
+    const inp = document.getElementById('panel-obs-input');
+    if(inp && panelIdx !== null){
+      const r = resultados.find(x=>x.id===panelIdx);
+      if(r){ r.obs = inp.value; const el=document.getElementById('obs-text-'+panelIdx); if(el) el.textContent=r.obs; }
+    }
+    document.getElementById('fin-side-panel').style.display = 'none';
+    document.getElementById('fin-overlay').style.display = 'none';
+    panelIdx = null;
+  }
+
+  function setPanelStatus(status){
+    if(panelIdx===null) return;
+    const r = resultados.find(x=>x.id===panelIdx);
+    if(!r) return;
+    const inp = document.getElementById('panel-obs-input');
+    if(inp) r.obs = inp.value;
+    r.status = status;
+    closePanel();
+    renderTabela(filtrados.length ? filtrados : resultados);
+    renderStats(resultados);
+  }
+
+  window.finEditObs = function(id){
+    const r = resultados.find(x=>x.id===id);
+    if(!r) return;
+    const novaObs = prompt('Editar observação:', r.obs);
+    if(novaObs !== null){ r.obs = novaObs; const el=document.getElementById('obs-text-'+id); if(el) el.textContent=r.obs; }
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // UPLOAD & EVENTOS
+  // ═══════════════════════════════════════════════════════════
   function setupUpload(dropId, inputId, statusId, onLoad){
-    const drop = document.getElementById(dropId);
-    const input = document.getElementById(inputId);
-    const status = document.getElementById(statusId);
+    const drop=document.getElementById(dropId), input=document.getElementById(inputId), status=document.getElementById(statusId);
     if(!drop) return;
     drop.addEventListener('click',()=>input.click());
     input.addEventListener('change',()=>{ if(input.files[0]) handleFile(input.files[0]); });
     drop.addEventListener('dragover',e=>{e.preventDefault();drop.style.borderColor='var(--gold)';});
     drop.addEventListener('dragleave',()=>{drop.style.borderColor='var(--line)';});
-    drop.addEventListener('drop',e=>{
-      e.preventDefault(); drop.style.borderColor='var(--line)';
-      if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
-    });
+    drop.addEventListener('drop',e=>{e.preventDefault();drop.style.borderColor='var(--line)';if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);});
     async function handleFile(file){
-      status.textContent = '⏳ Lendo arquivo...';
-      try {
-        const dados = await parseArquivo(file);
+      status.textContent='⏳ Lendo arquivo...';
+      try{
+        const dados=await parseArquivo(file);
         onLoad(dados);
-        status.innerHTML = `<span style="color:#2A6A3A;">✓ ${dados.length} registros carregados — ${escapeHTML(file.name)}</span>`;
+        status.innerHTML=`<span style="color:#2A6A3A;">✓ ${dados.length} registros — ${escapeHTML(file.name)}</span>`;
         drop.style.borderColor='#2A6A3A';
         verificarPronto();
-      } catch(e){
-        status.innerHTML = `<span style="color:#8B2A2A;">✗ Erro ao ler arquivo: ${e.message}</span>`;
-      }
+      }catch(e){ status.innerHTML=`<span style="color:#8B2A2A;">✗ Erro: ${e.message}</span>`; }
     }
   }
 
@@ -1840,49 +1977,121 @@ F('btn-change-pwd').addEventListener('click', async () => {
     document.getElementById('btn-cruzar').disabled = !(dadosForms && dadosTrinks);
   }
 
+  function applyFilters(){
+    const q = (document.getElementById('fin-search').value||'').toLowerCase();
+    const st = document.getElementById('fin-filter-status').value;
+    const un = document.getElementById('fin-filter-unidade').value;
+    filtrados = resultados.filter(r=>{
+      const t=r.tRow, f=r.fRow;
+      const nome=(t&&t.nome||f&&f.nome||'').toLowerCase();
+      const fone=(t&&t.telefone||f&&f.telefone||'').replace(/\D/g,'');
+      const uni=(t&&t.unidade||f&&f.unidade||'').toLowerCase();
+      const matchQ = !q || nome.includes(q) || fone.includes(q) || uni.includes(q) || (r.obs||'').toLowerCase().includes(q);
+      const matchSt = !st || r.status===st;
+      const matchUn = !un || uni.includes(un.toLowerCase());
+      return matchQ && matchSt && matchUn;
+    });
+    renderTabela(filtrados);
+  }
+
   document.addEventListener('DOMContentLoaded',()=>{
     setupUpload('drop-forms','file-forms','forms-status', d=>{ dadosForms=d; });
-    setupUpload('drop-trinks','file-trinks','trinks-status', d=>{ dadosTrinks=d; });
+    setupUpload('drop-trinks','file-trinks','trinks-status', d=>{
+      dadosTrinks=d;
+      document.getElementById('trinks-unidade-wrap').style.display='block';
+    });
 
     document.getElementById('btn-cruzar').addEventListener('click',()=>{
-      const {divs,fRows,tRows} = cruzar(dadosForms, dadosTrinks);
-      divergencias = divs;
-      todosResultados = divs;
-      renderStats(fRows, tRows, divs);
-      renderTabela(divs);
+      const unid = document.getElementById('trinks-unidade').value;
+      resultados = reconciliar(dadosForms, dadosTrinks, unid);
+      filtrados = [];
+      // Preencher filtro de unidades
+      const unids = [...new Set(resultados.map(r=>(r.tRow&&r.tRow.unidade)||(r.fRow&&r.fRow.unidade)||'').filter(Boolean))];
+      const sel = document.getElementById('fin-filter-unidade');
+      sel.innerHTML = '<option value="">Todas as unidades</option>' + unids.map(u=>`<option>${u}</option>`).join('');
+      renderStats(resultados);
+      renderTabela(resultados);
+      document.getElementById('fin-step-upload').style.display='none';
       document.getElementById('fin-results').style.display='block';
-      document.getElementById('fin-results').scrollIntoView({behavior:'smooth',block:'start'});
     });
 
-    document.getElementById('fin-filter-tipo').addEventListener('change', function(){
-      const v = this.value;
-      const filtrado = v ? todosResultados.filter(d=>d.tipo===v) : todosResultados;
-      renderTabela(filtrado);
+    document.getElementById('btn-nova-conciliacao').addEventListener('click',()=>{
+      dadosForms=null; dadosTrinks=null; resultados=[]; filtrados=[];
+      document.getElementById('fin-results').style.display='none';
+      document.getElementById('fin-step-upload').style.display='block';
+      document.getElementById('forms-status').textContent='';
+      document.getElementById('trinks-status').textContent='';
+      document.getElementById('trinks-unidade-wrap').style.display='none';
+      document.getElementById('drop-forms').style.borderColor='var(--line)';
+      document.getElementById('drop-trinks').style.borderColor='var(--line)';
+      document.getElementById('btn-cruzar').disabled=true;
     });
 
-    document.getElementById('btn-export-fin').addEventListener('click',()=>{
-      if(!todosResultados.length){ toast('Nenhuma divergência para exportar','error'); return; }
-      const rows = todosResultados.map(d=>({
-        'Cliente': d.cliente,
-        'Data': d.data,
-        'Unidade': d.unidade,
-        'Tipo': 'Tipo '+d.tipo,
-        'Descrição': d.tipodesc,
-        'Forms — %': d.formsPct,
-        'Forms — Motivo': d.formsMotivo,
-        'Forms — Liberado por': d.formsLiberadoPor,
-        'Trinks — %': d.trinksPct,
-        'Trinks — Motivo': d.trinksMotivo,
-        'Trinks — Quem fechou': d.trinksQuemFechou,
-        'Observação': d.obs,
+    document.getElementById('fin-search').addEventListener('input', applyFilters);
+    document.getElementById('fin-filter-status').addEventListener('change', applyFilters);
+    document.getElementById('fin-filter-unidade').addEventListener('change', applyFilters);
+
+    document.getElementById('fin-panel-close').addEventListener('click', closePanel);
+    document.getElementById('fin-overlay').addEventListener('click', closePanel);
+    document.getElementById('fin-panel-conciliado').addEventListener('click',()=>setPanelStatus('conciliado'));
+    document.getElementById('fin-panel-manual').addEventListener('click',()=>setPanelStatus('manual'));
+    document.getElementById('fin-panel-nao').addEventListener('click',()=>setPanelStatus('nao-conciliado'));
+
+    document.getElementById('btn-export-xlsx').addEventListener('click',()=>{
+      const lista = filtrados.length ? filtrados : resultados;
+      if(!lista.length){ toast('Nenhum dado para exportar','error'); return; }
+      const statusMap = {conciliado:'✅ Conciliado',manual:'⚠️ Conferência Manual','nao-conciliado':'❌ Não conciliado'};
+      const rows = lista.map(r=>({
+        'Status': statusMap[r.status]||r.status,
+        'Data Trinks': r.tRow?fmtDate(r.tRow.data):'—',
+        'Cliente': r.tRow?r.tRow.nome:(r.fRow?r.fRow.nome:'—'),
+        'Unidade': (r.tRow&&r.tRow.unidade)||(r.fRow&&r.fRow.unidade)||'—',
+        'Cat. Trinks': r.tRow?r.tRow.motivo:'—',
+        'Cat. Forms': r.fRow?r.fRow.motivo:'—',
+        'Vl. Serviço': r.tRow?r.tRow.totalServ:'—',
+        'Vl. Desconto': r.tRow?r.tRow.descVal:'—',
+        '% Trinks': r.tRow?r.tRow.pctReal+'%':'—',
+        '% Forms': r.fRow&&r.fRow.pct!==null?r.fRow.pct+'%':'—',
+        'Liberou': r.fRow?r.fRow.liberadoPor:'—',
+        'Fechou': r.tRow?r.tRow.quemFechou:'—',
+        'Observação': r.obs,
       }));
-      const ws = XLSX.utils.json_to_sheet(rows);
-      ws['!cols'] = [20,12,12,8,35,10,20,20,10,20,20,40].map(w=>({wch:w}));
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Divergências');
-      const hoje = new Date().toISOString().slice(0,10);
-      XLSX.writeFile(wb, `divergencias-${hoje}.xlsx`);
-      toast('Excel exportado com sucesso','success');
+      const ws=XLSX.utils.json_to_sheet(rows);
+      ws['!cols']=[18,12,22,14,18,18,12,12,10,10,18,18,40].map(w=>({wch:w}));
+      const wb=XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb,ws,'Conciliação');
+      const hoje=new Date().toISOString().slice(0,10);
+      XLSX.writeFile(wb,`conciliacao-${hoje}.xlsx`);
+      toast('Excel exportado','success');
+    });
+
+    document.getElementById('btn-export-csv').addEventListener('click',()=>{
+      const lista = filtrados.length ? filtrados : resultados;
+      if(!lista.length){ toast('Nenhum dado para exportar','error'); return; }
+      const statusMap = {conciliado:'Conciliado',manual:'Conferencia Manual','nao-conciliado':'Nao conciliado'};
+      const header = ['Status','Data','Cliente','Unidade','Cat.Trinks','Cat.Forms','Vl.Servico','Vl.Desconto','% Trinks','% Forms','Liberou','Fechou','Observacao'];
+      const esc = v => '"'+String(v||'').replace(/"/g,'""')+'"';
+      const rows = lista.map(r=>[
+        statusMap[r.status]||r.status,
+        r.tRow?fmtDate(r.tRow.data):'',
+        r.tRow?r.tRow.nome:(r.fRow?r.fRow.nome:''),
+        (r.tRow&&r.tRow.unidade)||(r.fRow&&r.fRow.unidade)||'',
+        r.tRow?r.tRow.motivo:'',
+        r.fRow?r.fRow.motivo:'',
+        r.tRow?r.tRow.totalServ:'',
+        r.tRow?r.tRow.descVal:'',
+        r.tRow?r.tRow.pctReal+'%':'',
+        r.fRow&&r.fRow.pct!==null?r.fRow.pct+'%':'',
+        r.fRow?r.fRow.liberadoPor:'',
+        r.tRow?r.tRow.quemFechou:'',
+        r.obs
+      ].map(esc).join(','));
+      const csv = [header.map(esc).join(','), ...rows].join('\n');
+      const blob = new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download=`conciliacao-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+      URL.revokeObjectURL(url);
+      toast('CSV exportado','success');
     });
   });
 })();

@@ -521,85 +521,200 @@
 
     <!-- FINANCEIRO -->
     <section class="view" id="view-financeiro">
-      <!-- STEP 1: Upload -->
-      <div id="fin-step-upload">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+    <style>
+      /* ── FIN: Upload ── */
+      .fin-upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px;}
+      .fin-dz{border:2px dashed var(--line);border-radius:10px;padding:28px 16px;text-align:center;cursor:pointer;transition:border-color .15s;}
+      .fin-dz:hover,.fin-dz.over{border-color:var(--gold);}
+      .fin-dz.loaded{border-color:#2A6B3F;border-style:solid;}
+      .fin-dz-status{min-height:16px;font-size:12px;margin-top:6px;}
+      /* ── FIN: Work Screen (fixed overlay) ── */
+      #fin-s-work{position:fixed;top:60px;left:0;right:0;bottom:0;background:white;z-index:100;display:none;flex-direction:column;}
+      .fw-area{flex:1;display:grid;grid-template-columns:1fr 200px 1fr;min-height:0;overflow:hidden;}
+      .fw-side{overflow-y:auto;padding:20px 18px;background:white;}
+      .fw-side.left{border-right:1px solid var(--line);}
+      .fw-side.right{border-left:1px solid var(--line);}
+      .fw-src{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;padding:3px 9px;border-radius:20px;display:inline-block;margin-bottom:12px;}
+      .fw-src-t{background:#EDE7F6;color:#4A2B7E;}
+      .fw-src-f{background:#D4EDDA;color:#155724;}
+      .fw-name{font-size:19px;font-weight:700;margin-bottom:14px;line-height:1.2;}
+      .fw-vp{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+      .fw-vb{background:var(--bg);border-radius:8px;padding:10px;text-align:center;}
+      .fw-vb .vl{font-size:9px;font-weight:700;text-transform:uppercase;color:var(--gray);margin-bottom:2px;}
+      .fw-vb .vn{font-size:18px;font-weight:700;}
+      .fw-pct{display:inline-block;border:1px solid var(--gold);color:var(--gold);background:#FFF9EF;border-radius:20px;padding:2px 12px;font-size:12px;font-weight:700;margin-bottom:12px;}
+      .fw-fb{margin-bottom:10px;}
+      .fw-fb .fl{font-size:9px;font-weight:700;text-transform:uppercase;color:var(--gray);margin-bottom:2px;}
+      .fw-fb .fv{font-size:13px;padding:5px 9px;border-radius:6px;background:var(--bg);}
+      .fv-ok{background:#D4EDDA;color:#155724;}
+      .fv-warn{background:#FFF4DC;color:#856404;}
+      .fv-err{background:#FCE3E3;color:#8B2A2A;}
+      /* Centro */
+      .fw-center{background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 10px;gap:10px;border-left:1px solid var(--line);border-right:1px solid var(--line);}
+      .fw-chip{width:100%;text-align:center;padding:9px 10px;border-radius:10px;font-size:11px;font-weight:700;line-height:1.4;}
+      .fw-chip-found{background:#D4EDDA;color:#155724;}
+      .fw-chip-none{background:#FCE3E3;color:#8B2A2A;}
+      .fw-chip-multi{background:#FFF4DC;color:#856404;}
+      .fw-cands{width:100%;display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto;}
+      .fw-cand{background:white;border:1.5px solid var(--line);border-radius:8px;padding:7px 9px;cursor:pointer;font-size:11px;transition:border-color .15s;}
+      .fw-cand:hover{border-color:var(--gold);}
+      .fw-cand.active{border-color:var(--gold);background:#FFF9EF;}
+      .fw-cand .cn{font-weight:700;font-size:12px;margin-bottom:1px;}
+      .fw-cand .ci{color:var(--gray);font-size:10px;}
+      .fw-no-match{font-size:11px;color:var(--gray);text-align:center;line-height:1.6;}
+      /* Footer de trabalho */
+      .fw-footer{background:white;border-top:1px solid var(--line);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;flex-wrap:wrap;}
+      .fw-prog-bar{width:140px;height:5px;background:var(--line);border-radius:3px;overflow:hidden;}
+      .fw-prog-fill{height:100%;background:var(--gold);border-radius:3px;transition:width .3s;}
+      /* Review */
+      .fin-rv-hdr{background:white;border-bottom:1px solid var(--line);padding:12px 0 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+      .fin-dash{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px;}
+      .fin-dc{background:white;border-radius:10px;padding:12px;text-align:center;box-shadow:0 1px 5px rgba(0,0,0,.06);}
+      .fin-dc .dn{font-size:24px;font-weight:700;margin-bottom:2px;}
+      .fin-dc .dl{font-size:10px;font-weight:600;text-transform:uppercase;color:var(--gray);}
+      .fin-rv-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+      .fin-rv-toolbar input[type=search]{flex:1;min-width:180px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:12px;}
+      .fin-rv-toolbar select{padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:12px;background:white;}
+      .fin-rv-wrap{overflow-x:auto;}
+      .fin-rv-table{width:100%;background:white;border-radius:12px;border:1px solid var(--line);border-collapse:separate;border-spacing:0;overflow:hidden;min-width:1100px;}
+      .fin-rv-table th,.fin-rv-table td{padding:9px 11px;text-align:left;font-size:12px;border-bottom:1px solid var(--line);}
+      .fin-rv-table th{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--gray);background:var(--bg);white-space:nowrap;}
+      .fin-rv-table tr:last-child td{border-bottom:none;}
+      .fin-rv-table tbody tr:hover{background:#fafaf7;}
+      .fin-sp{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;border:none;font-family:inherit;}
+      .fin-sp-pend{background:#FFF4DC;color:#856404;}
+      .fin-sp-ok{background:#E8F5E9;color:#2A6B3F;}
+      .fin-op{padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600;}
+      .fin-op-c{background:#EDE7F6;color:#4A2B7E;}
+      .fin-op-sf{background:#e0e0e0;color:#555;}
+      .fin-op-st{background:#D4EDDA;color:#155724;}
+      @media print{.fw-footer,.fin-rv-toolbar,.fin-rv-hdr button,.btn{display:none!important;}}
+    </style>
+
+    <!-- ── ETAPA 1: UPLOAD ── -->
+    <div id="fin-s-upload">
+      <div style="max-width:760px;">
+        <h2 style="margin-bottom:6px;">Conciliação Assistida de Descontos</h2>
+        <p style="font-size:13px;color:var(--gray);margin-bottom:20px;line-height:1.6;">Importe as planilhas. O sistema sugere correspondências e você decide registro a registro.</p>
+        <div class="fin-upload-grid">
           <div class="panel">
-            <h2>📋 Planilha Google Forms</h2>
-            <div id="drop-forms" class="fin-drop">
-              <div style="font-size:28px;margin-bottom:8px;">📋</div>
-              <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Arraste o arquivo aqui</div>
-              <div style="font-size:12px;color:var(--gray);">ou clique para selecionar (.csv ou .xlsx)</div>
-              <input type="file" id="file-forms" accept=".csv,.xlsx,.xls" style="display:none;">
+            <h2>📊 Trinks</h2>
+            <div class="fin-dz" id="fin-dz-t">
+              <div style="font-size:26px;margin-bottom:6px;">📊</div>
+              <div style="font-size:13px;font-weight:600;margin-bottom:3px;">Arraste ou clique</div>
+              <div style="font-size:11px;color:var(--gray);">.csv ou .xlsx</div>
+              <input type="file" id="fin-fi-t" accept=".csv,.xlsx,.xls" style="display:none;">
             </div>
-            <div id="forms-status" class="fin-status"></div>
-          </div>
-          <div class="panel">
-            <h2>📊 Planilha Trinks</h2>
-            <div id="drop-trinks" class="fin-drop">
-              <div style="font-size:28px;margin-bottom:8px;">📊</div>
-              <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Arraste o arquivo aqui</div>
-              <div style="font-size:12px;color:var(--gray);">ou clique para selecionar (.csv ou .xlsx)</div>
-              <input type="file" id="file-trinks" accept=".csv,.xlsx,.xls" style="display:none;">
-            </div>
-            <div id="trinks-status" class="fin-status"></div>
-            <div id="trinks-unidade-wrap" style="display:none;margin-top:12px;">
-              <label style="font-size:12px;font-weight:600;display:block;margin-bottom:6px;">Unidade desta planilha Trinks *</label>
-              <select id="trinks-unidade" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;background:white;">
-                <option value="">Selecione…</option>
+            <div class="fin-dz-status" id="fin-st-t"></div>
+            <div id="fin-unidade-row" style="display:none;margin-top:10px;">
+              <label style="font-size:11px;font-weight:600;display:block;margin-bottom:5px;">Unidade desta planilha *</label>
+              <select id="fin-unidade" style="width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;background:white;">
+                <option value="">— Selecione —</option>
                 <option>Barra Prime</option><option>Moema</option>
                 <option>Copacabana</option><option>Leblon</option><option>Blue Center</option>
               </select>
             </div>
           </div>
-        </div>
-        <div style="text-align:center;margin-bottom:24px;">
-          <button id="btn-cruzar" class="btn btn-primary" style="padding:14px 40px;font-size:15px;max-width:320px;" disabled>🔍 Executar Conciliação</button>
-        </div>
-      </div>
-
-      <!-- RESULTS -->
-      <div id="fin-results" style="display:none;">
-        <!-- Dashboard -->
-        <div class="stats" style="grid-template-columns:repeat(5,1fr);margin-bottom:20px;" id="fin-stats"></div>
-
-        <!-- Toolbar -->
-        <div class="panel" style="padding:0;">
-          <div style="padding:14px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-            <input type="search" id="fin-search" placeholder="🔍 Buscar por cliente, telefone, unidade…" style="flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;">
-            <select id="fin-filter-status" style="padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;background:white;">
-              <option value="">Todos os status</option>
-              <option value="conciliado">✅ Conciliado</option>
-              <option value="manual">⚠️ Conferência Manual</option>
-              <option value="nao-conciliado">❌ Não conciliado</option>
-            </select>
-            <select id="fin-filter-unidade" style="padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;background:white;">
-              <option value="">Todas as unidades</option>
-            </select>
-            <button id="btn-nova-conciliacao" class="btn btn-ghost" style="padding:9px 16px;font-size:12px;">↩ Nova conciliação</button>
-            <div style="display:flex;gap:6px;">
-              <button id="btn-export-xlsx" class="btn btn-secondary" style="padding:9px 14px;font-size:12px;">↓ Excel</button>
-              <button id="btn-export-csv" class="btn btn-secondary" style="padding:9px 14px;font-size:12px;">↓ CSV</button>
+          <div class="panel">
+            <h2>📋 Google Forms</h2>
+            <div class="fin-dz" id="fin-dz-f">
+              <div style="font-size:26px;margin-bottom:6px;">📋</div>
+              <div style="font-size:13px;font-weight:600;margin-bottom:3px;">Arraste ou clique</div>
+              <div style="font-size:11px;color:var(--gray);">.csv ou .xlsx</div>
+              <input type="file" id="fin-fi-f" accept=".csv,.xlsx,.xls" style="display:none;">
             </div>
+            <div class="fin-dz-status" id="fin-st-f"></div>
           </div>
-          <div id="fin-table-container" style="overflow-x:auto;"></div>
+        </div>
+        <div style="text-align:center;">
+          <button id="fin-btn-iniciar" class="btn btn-primary" style="padding:14px 44px;font-size:14px;" disabled>🔍 Iniciar Conciliação</button>
         </div>
       </div>
+    </div>
 
-      <!-- SIDE PANEL -->
-      <div id="fin-side-panel" style="display:none;position:fixed;top:0;right:0;width:560px;height:100vh;background:white;box-shadow:-4px 0 24px rgba(0,0,0,.15);z-index:900;overflow-y:auto;display:flex;flex-direction:column;">
-        <div style="padding:20px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-          <h2 style="margin:0;padding:0;border:none;font-size:16px;">Revisão Manual</h2>
-          <button id="fin-panel-close" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray);">✕</button>
+    <!-- ── ETAPA 2: TELA DE TRABALHO (overlay fixo) ── -->
+    <div id="fin-s-work">
+      <div class="fw-area">
+        <!-- TRINKS -->
+        <div class="fw-side left" id="fw-card-t">
+          <span class="fw-src fw-src-t">TRINKS</span>
+          <div class="fw-name" id="fw-t-nome">—</div>
+          <div class="fw-vp">
+            <div class="fw-vb"><div class="vl">Total serviço</div><div class="vn" id="fw-t-total">—</div></div>
+            <div class="fw-vb"><div class="vl">Desconto</div><div class="vn" id="fw-t-desc">—</div></div>
+          </div>
+          <div class="fw-pct" id="fw-t-pct">% calc: —</div>
+          <div class="fw-fb"><div class="fl">Data</div><div class="fv" id="fw-t-data">—</div></div>
+          <div class="fw-fb"><div class="fl">Unidade</div><div class="fv" id="fw-t-unidade">—</div></div>
+          <div class="fw-fb"><div class="fl">Quem fechou</div><div class="fv" id="fw-t-fechou">—</div></div>
+          <div class="fw-fb"><div class="fl">Motivo do desconto</div><div class="fv" id="fw-t-motivo">—</div></div>
         </div>
-        <div id="fin-panel-body" style="padding:24px;flex:1;"></div>
-        <div style="padding:16px 24px;border-top:1px solid var(--line);display:flex;gap:10px;flex-shrink:0;">
-          <button id="fin-panel-conciliado" class="btn" style="flex:1;background:#2A6B3F;color:white;padding:10px;">✅ Conciliado</button>
-          <button id="fin-panel-manual" class="btn" style="flex:1;background:#8C6A2A;color:white;padding:10px;">⚠️ Manual</button>
-          <button id="fin-panel-nao" class="btn" style="flex:1;background:#8B2A2A;color:white;padding:10px;">❌ Não conciliado</button>
+        <!-- CENTRO -->
+        <div class="fw-center">
+          <div style="font-size:24px;color:var(--gold);">⇄</div>
+          <div class="fw-chip" id="fw-chip">—</div>
+          <div class="fw-cands" id="fw-cands"></div>
+          <div class="fw-no-match" id="fw-no-match" style="display:none;">Nenhuma<br>correspondência<br>encontrada.</div>
+        </div>
+        <!-- FORMS -->
+        <div class="fw-side right" id="fw-card-f">
+          <span class="fw-src fw-src-f">GOOGLE FORMS</span>
+          <div class="fw-name" id="fw-f-nome">—</div>
+          <div class="fw-fb"><div class="fl">Telefone</div><div class="fv" id="fw-f-tel">—</div></div>
+          <div class="fw-fb"><div class="fl">Data</div><div class="fv" id="fw-f-data">—</div></div>
+          <div class="fw-fb"><div class="fl">Unidade</div><div class="fv" id="fw-f-unidade">—</div></div>
+          <div class="fw-fb"><div class="fl">Motivo</div><div class="fv" id="fw-f-motivo">—</div></div>
+          <div class="fw-fb"><div class="fl">% autorizado</div><div class="fv" id="fw-f-pct">—</div></div>
+          <div class="fw-fb"><div class="fl">Liberado por</div><div class="fv" id="fw-f-liberou">—</div></div>
+          <div class="fw-fb"><div class="fl">Carimbo</div><div class="fv" id="fw-f-carimbo">—</div></div>
         </div>
       </div>
-      <div id="fin-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:899;" ></div>
+      <!-- FOOTER -->
+      <div class="fw-footer">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn" id="fw-btn-prev" onclick="fwNav(-1)">← Anterior</button>
+          <button class="btn" id="fw-btn-pular" onclick="fwPular()">Pular</button>
+          <div class="fw-prog-bar"><div class="fw-prog-fill" id="fw-prog-fill" style="width:0"></div></div>
+          <span style="font-size:12px;font-weight:600;" id="fw-counter">—</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn" style="border-color:#FCE3E3;color:#8B2A2A;background:#FCE3E3;" id="fw-btn-nao" onclick="fwNaoEncontrado()">Não encontrei correspondência</button>
+          <button class="btn btn-primary" id="fw-btn-conc" onclick="fwConciliar()" style="background:var(--gold);border-color:var(--gold);">✓ Conciliar e Próximo</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ETAPA 3: REVISÃO GERAL ── -->
+    <div id="fin-s-review" style="display:none;">
+      <div class="fin-rv-hdr">
+        <h2 style="margin:0;padding:0;border:none;">Revisão Geral</h2>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn" style="font-size:12px;padding:7px 14px;" onclick="fwGoWork()">← Voltar à conciliação</button>
+          <button class="btn" style="font-size:12px;padding:7px 14px;" onclick="finExportXLSX()">↓ Excel</button>
+          <button class="btn" style="font-size:12px;padding:7px 14px;" onclick="finExportCSV()">↓ CSV</button>
+          <button class="btn" style="font-size:12px;padding:7px 14px;" onclick="window.print()">↓ PDF</button>
+          <button class="btn btn-primary" style="font-size:12px;padding:7px 14px;" onclick="finReset()">🔄 Nova conciliação</button>
+        </div>
+      </div>
+      <div class="fin-dash" id="fin-dash"></div>
+      <div class="fin-rv-toolbar">
+        <input type="search" id="fin-rv-q" placeholder="🔍 Buscar…">
+        <select id="fin-rv-st"><option value="">Todos os status</option><option value="pendente">🟡 Pendente</option><option value="ok">🟢 OK</option></select>
+        <select id="fin-rv-orig"><option value="">Todas as origens</option><option value="conciliado">Conciliados</option><option value="sem-forms">Sem Forms</option><option value="sem-trinks">Autor. não usada</option></select>
+        <select id="fin-rv-un"><option value="">Todas as unidades</option></select>
+      </div>
+      <div class="fin-rv-wrap">
+        <table class="fin-rv-table">
+          <thead><tr>
+            <th>Status</th><th>Cliente</th><th>Telefone</th><th>Unidade</th>
+            <th>Motivo Trinks</th><th>Motivo Forms</th>
+            <th>Vl. Total</th><th>Vl. Desc.</th><th>% Calc.</th><th>% Aut.</th>
+            <th>Quem Fechou</th><th>Quem Liberou</th><th>Observação</th><th>Origem</th>
+          </tr></thead>
+          <tbody id="fin-rv-body"></tbody>
+        </table>
+      </div>
+    </div>
     </section>
 
     <!-- USERS -->
@@ -1582,518 +1697,373 @@ F('btn-change-pwd').addEventListener('click', async () => {
 
 // ── FINANCEIRO ───────────────────────────────────────────────
 (function(){
-  let dadosForms = null, dadosTrinks = null, resultados = [], filtrados = [], panelIdx = null;
+  let finTRows=[], finFRows=[], finQueue=[], finQIdx=0, finReview=[];
 
-  // ═══════════════════════════════════════════════════════════
-  // NORMALIZAÇÃO
-  // ═══════════════════════════════════════════════════════════
-  function norm(s){ return s?s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim():''; }
-  function normNome(s){ return norm(s); }
-  function normUnidade(s){
-    if(!s) return '';
-    const map = {'barra prime':'barra','barra prime_':'barra','moema':'moema','copacabana':'copa','copa':'copa','leblon':'leblon','blue center':'blue','blue center_':'blue'};
-    const k = norm(s);
-    for(const key of Object.keys(map)){ if(k.startsWith(norm(key).split('_')[0])) return map[key]; }
-    return k;
-  }
-  function extrairPct(s){
-    if(s===null||s===undefined||s==='') return null;
-    if(typeof s==='number') return s;
-    const m = String(s).match(/(\d+([.,]\d+)?)/);
-    return m ? parseFloat(m[1].replace(',','.')) : null;
-  }
-  function normData(s){
-    if(!s) return '';
-    if(typeof s==='number'){ const d=new Date(Math.round((s-25569)*86400*1000)); return d.toISOString().slice(0,10); }
+  // ── utils ──
+  function finNorm(s){return s?String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim():'';}
+  function finNormU(s){const k=finNorm(s);if(k.includes('barra'))return'barra';if(k.includes('moema'))return'moema';if(k.includes('copa'))return'copa';if(k.includes('leblon'))return'leblon';if(k.includes('blue'))return'blue';return k;}
+  function finNormP(s){return String(s||'').replace(/\D/g,'').slice(-8);}
+  function finPct(s){if(s===null||s===undefined||s==='')return null;if(typeof s==='number')return s;const m=String(s).match(/(\d+([.,]\d+)?)/);return m?parseFloat(m[1].replace(',','.')):null;}
+  function finDate(s){
+    if(!s)return'';
+    if(typeof s==='number'){const d=new Date(Math.round((s-25569)*86400*1000));return d.toISOString().slice(0,10);}
     const str=String(s).trim();
     const m=str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
-    if(m){ let y=m[3]; if(y.length===2)y='20'+y; return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`; }
-    if(/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0,10);
-    const d=new Date(str); return isNaN(d)?str:d.toISOString().slice(0,10);
+    if(m){let y=m[3];if(y.length===2)y='20'+y;return`${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;}
+    if(/^\d{4}-\d{2}-\d{2}/.test(str))return str.slice(0,10);
+    const d=new Date(str);return isNaN(d)?str:d.toISOString().slice(0,10);
   }
-  function normPhone(s){
-    if(!s) return '';
-    const d = String(s).replace(/\D/g,'');
-    return d.slice(-8); // últimos 8 dígitos
-  }
-  function fmtDate(iso){ if(!iso) return '—'; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; }
+  function finFmtD(s){if(!s||s==='—')return'—';const p=String(s).split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:s;}
+  function finFmtBRL(v){return(v!==null&&v!==undefined&&v!==''&&!isNaN(v))?'R$ '+parseFloat(v).toFixed(2).replace('.',','):'—';}
+  function finFmtPct(v){return v!==null&&v!==undefined?v+'%':'—';}
+  function finEsc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
 
-  // ═══════════════════════════════════════════════════════════
-  // SIMILARIDADE DE NOMES
-  // ═══════════════════════════════════════════════════════════
-  function nameScore(a, b){
-    a=normNome(a); b=normNome(b);
-    if(!a||!b) return 0;
-    if(a===b) return 1.0;
-    if(a.includes(b)||b.includes(a)) return 0.92;
-    const wa=a.split(' ').filter(w=>w.length>2);
-    const wb=b.split(' ').filter(w=>w.length>2);
-    const comuns=wa.filter(w=>wb.includes(w)).length;
-    const total=Math.max(wa.length,wb.length)||1;
-    if(comuns/total>=0.6) return 0.85;
-    if(comuns>=1 && wa[0]===wb[0]) return 0.75; // mesmo primeiro nome e 1 sobrenome
-    // bigrama
-    function bg(s){ const r=new Set(); for(let i=0;i<s.length-1;i++) r.add(s.slice(i,i+2)); return r; }
-    const ba=bg(a.replace(/\s/g,'')), bb=bg(b.replace(/\s/g,''));
-    let inter=0; ba.forEach(g=>{if(bb.has(g))inter++;});
-    return (2*inter)/((ba.size+bb.size)||1);
+  // ── find col ──
+  function finCol(row,...terms){const keys=Object.keys(row);return keys.find(k=>terms.some(t=>k.toLowerCase().includes(t.toLowerCase())))||'';}
+
+  // ── map rows ──
+  function finMapT(row,unidade){
+    const totalServ=parseFloat(String(row[finCol(row,'total (r$) servi','total servi','total r$','valor total','total')]||'0').replace(/[^\d,.-]/g,'').replace(',','.'))||0;
+    const descBruto=parseFloat(String(row[finCol(row,'desconto','desc')]||'0').replace(/[^\d,.-]/g,'').replace(',','.'))||0;
+    const descVal=Math.abs(descBruto);
+    const pctReal=totalServ>0?Math.round((descVal/totalServ)*1000)/10:0;
+    const unidadeRaw=String(row[finCol(row,'unidade')]||'').trim()||unidade||'';
+    return{raw:row,nome:String(row[finCol(row,'nome do cliente','nome cliente','cliente')]||'').trim(),data:finDate(row[finCol(row,'data de atend','data atend','data')]||''),unidade:unidadeRaw,unidadeNorm:finNormU(unidadeRaw),fechou:String(row[finCol(row,'quem fechou','fechou a conta','atendente')]||'').trim(),motivo:String(row[finCol(row,'motivo desconto','motivo')]||'').trim(),totalServ,descVal,pctReal,temDesconto:descVal>0,linkedFormIdx:null,naoEncontrado:false};
+  }
+  function finMapF(row){
+    const unidadeRaw=String(row[finCol(row,'unidade')]||'').trim();
+    return{raw:row,nome:String(row[finCol(row,'nome da cliente','nome cliente','cliente')]||'').trim(),telefone:String(row[finCol(row,'telefone')]||'').trim(),dataApp:finDate(row[finCol(row,'data da aplica','data aplica','data do desconto','data')]||''),carimbo:String(row[finCol(row,'carimbo','timestamp','hora')]||'').slice(0,16),unidade:unidadeRaw,unidadeNorm:finNormU(unidadeRaw),motivo:String(row[finCol(row,'motivo')]||'').trim(),pct:finPct(row[finCol(row,'porcentagem','desconto oferec','% oferec','percent')]||''),liberadoPor:String(row[finCol(row,'liberado por','autorizado por','quem liberou','nome completo')]||'').trim(),linkedTrinkIdx:null};
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // SCORE COMPOSTO ENTRE UM REGISTRO TRINKS E UM FORMS
-  // ═══════════════════════════════════════════════════════════
-  function calcScore(t, f){
-    const sNome = nameScore(t.nome, f.nome);               // peso 0.50
-    // Telefone: reforço quando ambos existem
-    const tp=normPhone(t.telefone||''), fp=normPhone(f.telefone||'');
-    const sFone = (tp&&fp) ? (tp===fp?1:0) : 0.5;         // peso 0.15
-    // Unidade
-    const tu=normUnidade(t.unidade), fu=normUnidade(f.unidade);
-    const sUnit = (!tu||!fu)?0.5:(tu===fu?1:0);            // peso 0.15
-    // Motivo
-    const tm=norm(t.motivo), fm=norm(f.motivo);
-    const sMot = (!tm||!fm)?0.5:(tm===fm?1:(tm.includes(fm)||fm.includes(tm)?0.7:0.2)); // peso 0.10
-    // Percentual
-    const pctT=t.pctReal, pctF=f.pct;
-    let sPct=0.5;
-    if(pctT!==null&&pctF!==null){ const diff=Math.abs(pctT-pctF); sPct=diff<=1?1:diff<=3?0.7:diff<=10?0.4:0; }
-    // Score final
-    return sNome*0.50 + sFone*0.15 + sUnit*0.15 + sMot*0.10 + sPct*0.10;
+  // ── similarity ──
+  function finNameScore(a,b){
+    a=finNorm(a);b=finNorm(b);
+    if(!a||!b)return 0;if(a===b)return 1;if(a.includes(b)||b.includes(a))return 0.92;
+    const wa=a.split(' ').filter(w=>w.length>2),wb=b.split(' ').filter(w=>w.length>2);
+    const com=wa.filter(w=>wb.includes(w)).length;
+    if(com>0){const tot=Math.max(wa.length,wb.length)||1;if(com/tot>=0.5)return 0.85;}
+    if(wa[0]&&wb[0]&&wa[0]===wb[0])return 0.72;
+    function bg(s){const r=new Set();for(let i=0;i<s.length-1;i++)r.add(s.slice(i,i+2));return r;}
+    const ba=bg(a.replace(/\s/g,'')),bb=bg(b.replace(/\s/g,''));
+    let inter=0;ba.forEach(g=>{if(bb.has(g))inter++;});
+    return(2*inter)/((ba.size+bb.size)||1);
+  }
+  function finScore(t,f){
+    const sN=finNameScore(t.nome,f.nome);
+    const tp=finNormP(t.telefone||''),fp=finNormP(f.telefone||'');
+    const sP=(tp&&fp)?(tp===fp?1:0.3):0.5;
+    const sU=(t.unidadeNorm&&f.unidadeNorm)?(t.unidadeNorm===f.unidadeNorm?1:0.1):0.5;
+    const tm=finNorm(t.motivo),fm=finNorm(f.motivo);
+    const sM=(!tm||!fm)?0.5:(tm===fm?1:(tm.includes(fm)||fm.includes(tm))?0.75:0.2);
+    return sN*0.55+sP*0.13+sU*0.17+sM*0.15;
   }
 
-  function classifyDiff(val1, val2, tol){
-    if(!val1&&!val2) return 'ok';
-    if(!val1||!val2) return 'warn';
-    if(typeof tol==='number') return Math.abs(val1-val2)<=tol?'ok':Math.abs(val1-val2)<=tol*3?'warn':'err';
-    const s1=norm(String(val1)), s2=norm(String(val2));
-    if(s1===s2) return 'ok';
-    if(s1.includes(s2)||s2.includes(s1)) return 'warn';
-    return 'err';
-  }
-
-  // ---- Parse de arquivo ----
-  async function parseArquivo(file){
-    return new Promise((resolve,reject)=>{
-      const reader = new FileReader();
-      reader.onload = e => {
-        try {
-          const wb = XLSX.read(e.target.result, {type:'array', cellDates:false});
-          const ws = wb.Sheets[wb.SheetNames[0]];
-          const dados = XLSX.utils.sheet_to_json(ws,{defval:''});
-          resolve(dados);
-        } catch(err){ reject(err); }
-      };
-      reader.onerror = reject;
-      reader.readAsArrayBuffer(file);
+  // ── parse file ──
+  function finParse(file){
+    return new Promise((res,rej)=>{
+      const r=new FileReader();
+      r.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'array',cellDates:false});const ws=wb.Sheets[wb.SheetNames[0]];res(XLSX.utils.sheet_to_json(ws,{defval:''}));}catch(err){rej(err);}};
+      r.onerror=rej;r.readAsArrayBuffer(file);
     });
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // MAPEAMENTO DE COLUNAS
-  // ═══════════════════════════════════════════════════════════
-  function mapForms(row){
-    const keys = Object.keys(row);
-    const find = (...terms) => keys.find(k => terms.some(t => k.toLowerCase().includes(t.toLowerCase()))) || '';
-    return {
-      raw: row,
-      nome:     String(row[find('nome da cliente','nome cliente','cliente')] || '').trim(),
-      telefone: String(row[find('telefone')] || '').trim(),
-      dataApp:  normData(row[find('data da aplica','data aplica','data do desconto','data')] || ''),
-      motivo:   String(row[find('motivo')] || '').trim(),
-      pct:      extrairPct(row[find('porcentagem','desconto oferec','% oferec','percent')] || ''),
-      unidade:  normUnidade(String(row[find('unidade')] || '')),
-      liberadoPor: String(row[find('liberado por','autorizado por','quem liberou','nome completo')] || '').trim(),
-    };
-  }
-
-  // ---- Mapear colunas do Trinks ----
-  function mapTrinks(row){
-    const keys = Object.keys(row);
-    const find = (...terms) => keys.find(k => terms.some(t => k.toLowerCase().includes(t.toLowerCase()))) || '';
-    const totalServ = parseFloat(String(row[find('total (r$) servi','total r$ servi','total servi','total (r$)')] || '0').replace(/[^\d,.-]/g,'').replace(',','.')) || 0;
-    const descBruto = parseFloat(String(row[find('desconto')] || '0').replace(/[^\d,.-]/g,'').replace(',','.')) || 0;
-    const descVal = Math.abs(descBruto);
-    const pctReal = totalServ > 0 ? Math.round((descVal/totalServ)*1000)/10 : 0;
-    return {
-      raw: row,
-      data:       normData(row[find('data de atend','data atend','data')] || ''),
-      unidade:    normUnidade(String(row[find('unidade')] || '')),
-      nome:       String(row[find('nome do cliente','nome cliente','cliente')] || '').trim(),
-      totalServ,
-      descVal,
-      pctReal,
-      motivo:     String(row[find('motivo desconto','motivo')] || '').trim(),
-      quemFechou: String(row[find('quem fechou','fechou a conta','atendente')] || '').trim(),
-      temDesconto: descVal > 0,
-    };
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // ALGORITMO DE CONCILIAÇÃO INTELIGENTE
-  // ═══════════════════════════════════════════════════════════
-  function reconciliar(forms, trinks, unidadeTrinks){
-    const fRows = forms.map(mapForms).filter(r=>r.nome);
-    const tRows = trinks.map(r=>{ const m=mapTrinks(r); if(unidadeTrinks&&!m.unidade) m.unidade=normUnidade(unidadeTrinks); return m; }).filter(r=>r.nome);
-    const res = [];
-    const fUsadas = new Set();
-    let uid = 0;
-
-    // Para cada registro Trinks: buscar candidatos no Forms
-    tRows.forEach((t, ti) => {
-      const candidatos = fRows
-        .map((f, fi) => ({ f, fi, score: calcScore(t, f) }))
-        .filter(c => c.score >= 0.40)
-        .sort((a, b) => b.score - a.score);
-
-      let status, fRow = null, score = 0, obs = '';
-
-      if (!candidatos.length) {
-        status = 'nao-conciliado';
-        obs = t.temDesconto ? 'Desconto no Trinks sem autorização no Forms' : 'Sem correspondência no Forms';
-      } else {
-        const top = candidatos[0];
-        const segundo = candidatos[1];
-        const ambiguo = segundo && (top.score - segundo.score) < 0.10;
-        if (top.score >= 0.72 && !ambiguo) {
-          status = 'conciliado';
-          fRow = top.f;
-          score = top.score;
-          fUsadas.add(top.fi);
-          // Gerar obs automática de divergências
-          const diffs = [];
-          if (fRow.pct !== null && t.pctReal !== null && Math.abs(fRow.pct - t.pctReal) > 1)
-            diffs.push(`% divergente: Forms ${fRow.pct}% / Trinks ${t.pctReal}%`);
-          if (fRow.motivo && t.motivo && norm(fRow.motivo) !== norm(t.motivo))
-            diffs.push(`Motivo: "${fRow.motivo}" / "${t.motivo}"`);
-          if (fRow.unidade && t.unidade && normUnidade(fRow.unidade) !== normUnidade(t.unidade))
-            diffs.push(`Unidade: Forms "${fRow.unidade}" / Trinks "${t.unidade}"`);
-          obs = diffs.length ? diffs.join(' · ') : 'OK';
-        } else {
-          status = 'manual';
-          fRow = top.f;
-          score = top.score;
-          obs = ambiguo
-            ? `${candidatos.length} possíveis correspondências — conferência manual`
-            : `Correspondência incerta (score ${(top.score*100).toFixed(0)}%) — conferência manual`;
-        }
-      }
-
-      res.push({ id: uid++, status, obs, tRow: t, fRow, candidates: candidatos, score, type: 'trinks' });
+  // ── build queue ──
+  function finBuildQueue(){
+    finQueue=[];
+    finTRows.forEach((t,ti)=>{
+      if(!t.temDesconto)return;
+      const cands=finFRows.map((f,fi)=>({f,fi,score:finScore(t,f)})).filter(c=>c.score>=0.38&&c.f.linkedTrinkIdx===null).sort((a,b)=>b.score-a.score);
+      const st=cands.length===0?'none':cands.length===1?'found':(cands[0].score-(cands[1]?cands[1].score:0))>=0.12?'found':'multiple';
+      finQueue.push({ti,t,cands,candIdx:0,suggestType:st});
     });
-
-    // Forms sem correspondência Trinks = autorização não utilizada
-    fRows.forEach((f, fi) => {
-      if (!fUsadas.has(fi)) {
-        res.push({
-          id: uid++, status: 'nao-conciliado',
-          obs: 'Autorização no Forms não encontrada no Trinks',
-          tRow: null, fRow: f, candidates: [], score: 0, type: 'forms-only'
-        });
-      }
-    });
-
-    return res;
+    finQIdx=0;
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // RENDER TABELA
-  // ═══════════════════════════════════════════════════════════
-  function statusBadge(s){
-    const map = { conciliado:'✅ Conciliado', manual:'⚠️ Conferência Manual', 'nao-conciliado':'❌ Não conciliado' };
-    return `<span class="status-badge ${s}">${map[s]||s}</span>`;
+  // ── diff class ──
+  function finDiff(v1,v2,mode){
+    if(!v1&&!v2)return'';if(!v1||!v2)return'';
+    if(mode==='unit')return finNormU(String(v1))===finNormU(String(v2))?'fv-ok':'fv-err';
+    if(mode==='motivo'){const s=finNameScore(String(v1),String(v2));return s>=0.8?'fv-ok':s>=0.5?'fv-warn':'fv-err';}
+    if(mode==='pct'){const diff=Math.abs((parseFloat(v1)||0)-(parseFloat(v2)||0));return diff<=2?'fv-ok':diff<=8?'fv-warn':'fv-err';}
+    return finNorm(String(v1))===finNorm(String(v2))?'fv-ok':'fv-warn';
   }
+  function setFW(id,val,cls){const el=document.getElementById(id);if(!el)return;el.textContent=val||'—';el.className='fv'+(cls?' '+cls:'');}
 
-  function renderTabela(lista){
-    const cont = document.getElementById('fin-table-container');
-    if (!lista.length) {
-      cont.innerHTML = '<div style="padding:40px;text-align:center;color:var(--gray);">Nenhum registro encontrado</div>';
-      return;
+  // ── render work ──
+  function finRenderWork(){
+    if(finQIdx>=finQueue.length){finBuildReview();finShowReview();return;}
+    const item=finQueue[finQIdx];
+    const t=item.t;
+    const f=item.cands[item.candIdx]?item.cands[item.candIdx].f:null;
+
+    // progress
+    const pct=Math.round((finQIdx/finQueue.length)*100);
+    document.getElementById('fw-prog-fill').style.width=pct+'%';
+    document.getElementById('fw-counter').textContent=`${finQIdx+1} / ${finQueue.length}`;
+    const prevBtn=document.getElementById('fw-btn-prev');if(prevBtn)prevBtn.disabled=finQIdx===0;
+
+    // trinks
+    document.getElementById('fw-t-nome').textContent=t.nome||'—';
+    document.getElementById('fw-t-total').textContent=finFmtBRL(t.totalServ);
+    document.getElementById('fw-t-desc').textContent=finFmtBRL(t.descVal);
+    document.getElementById('fw-t-pct').textContent='% calc: '+(t.pctReal!==null?t.pctReal+'%':'—');
+    setFW('fw-t-data',finFmtD(t.data));
+    setFW('fw-t-unidade',t.unidade,f?finDiff(t.unidade,f.unidade,'unit'):'');
+    setFW('fw-t-fechou',t.fechou);
+    setFW('fw-t-motivo',t.motivo,f?finDiff(t.motivo,f.motivo,'motivo'):'');
+
+    // forms
+    if(f){
+      document.getElementById('fw-f-nome').textContent=f.nome||'—';
+      setFW('fw-f-tel',f.telefone);
+      setFW('fw-f-data',finFmtD(f.dataApp));
+      setFW('fw-f-unidade',f.unidade,finDiff(t.unidade,f.unidade,'unit'));
+      setFW('fw-f-motivo',f.motivo,finDiff(t.motivo,f.motivo,'motivo'));
+      setFW('fw-f-pct',finFmtPct(f.pct),f.pct!==null?finDiff(t.pctReal,f.pct,'pct'):'');
+      setFW('fw-f-liberou',f.liberadoPor);
+      setFW('fw-f-carimbo',f.carimbo||'—');
+    } else {
+      document.getElementById('fw-f-nome').textContent='—';
+      ['fw-f-tel','fw-f-data','fw-f-unidade','fw-f-motivo','fw-f-pct','fw-f-liberou','fw-f-carimbo'].forEach(id=>setFW(id,'—'));
     }
-    const rows = lista.map(r => {
-      const t = r.tRow, f = r.fRow;
-      const cliente = t ? t.nome : (f ? f.nome : '—');
-      const data = t ? fmtDate(t.data) : (f ? fmtDate(f.dataApp) : '—');
-      const unidade = (t && t.unidade) || (f && f.unidade) || '—';
-      const catT = t ? escapeHTML(t.motivo||'—') : '—';
-      const catF = f ? escapeHTML(f.motivo||'—') : '—';
-      const valServ = t ? `R$ ${t.totalServ.toFixed(2)}` : '—';
-      const valDesc = t ? `R$ ${t.descVal.toFixed(2)}` : '—';
-      const pctT = t ? `${t.pctReal}%` : '—';
-      const pctF = f && f.pct !== null ? `${f.pct}%` : '—';
-      const liberou = f ? escapeHTML(f.liberadoPor||'—') : '—';
-      const fechou = t ? escapeHTML(t.quemFechou||'—') : '—';
-      return `<tr style="cursor:pointer;" onclick="window.finOpenPanel(${r.id})">
-        <td>${statusBadge(r.status)}</td>
-        <td style="white-space:nowrap;">${escapeHTML(data)}</td>
-        <td style="font-weight:600;">${escapeHTML(cliente)}</td>
-        <td style="font-size:12px;">${escapeHTML(unidade)}</td>
-        <td style="font-size:12px;">${catT}</td>
-        <td style="font-size:12px;">${catF}</td>
-        <td style="font-size:12px;">${valServ}</td>
-        <td style="font-size:12px;">${valDesc}</td>
-        <td style="font-size:12px;">${pctT}</td>
-        <td style="font-size:12px;">${pctF}</td>
-        <td style="font-size:12px;">${liberou}</td>
-        <td style="font-size:12px;">${fechou}</td>
-        <td style="min-width:160px;">
-          <div class="obs-cell">
-            <span class="obs-text" id="obs-text-${r.id}">${escapeHTML(r.obs)}</span>
-            <button class="btn-mini" onclick="event.stopPropagation();window.finEditObs(${r.id})" title="Editar observação">✏️</button>
-          </div>
-        </td>
+
+    // centro
+    const chip=document.getElementById('fw-chip');
+    const noM=document.getElementById('fw-no-match');
+    const candList=document.getElementById('fw-cands');
+    chip.className='fw-chip';candList.innerHTML='';noM.style.display='none';chip.style.display='block';
+    if(item.suggestType==='none'){chip.style.display='none';noM.style.display='block';}
+    else if(item.suggestType==='found'){chip.classList.add('fw-chip-found');chip.textContent='✓ Correspondência sugerida';}
+    else{
+      chip.classList.add('fw-chip-multi');
+      chip.textContent=`${item.cands.length} correspondências possíveis`;
+      item.cands.slice(0,6).forEach((c,i)=>{
+        const d=document.createElement('div');
+        d.className='fw-cand'+(i===item.candIdx?' active':'');
+        d.innerHTML=`<div class="cn">${finEsc(c.f.nome)}</div><div class="ci">${finEsc(c.f.unidade||'—')} · ${finEsc(c.f.motivo||'—')}</div>`;
+        d.onclick=()=>{item.candIdx=i;finRenderWork();};
+        candList.appendChild(d);
+      });
+    }
+    const concBtn=document.getElementById('fw-btn-conc');if(concBtn)concBtn.disabled=!f;
+  }
+
+  // ── actions ──
+  window.fwConciliar=function(){
+    const item=finQueue[finQIdx];if(!item)return;
+    const cand=item.cands[item.candIdx];if(!cand)return;
+    item.t.linkedFormIdx=cand.fi;finFRows[cand.fi].linkedTrinkIdx=item.ti;
+    toast('Conciliado!','success');finQIdx++;finRenderWork();
+  };
+  window.fwNaoEncontrado=function(){
+    const item=finQueue[finQIdx];if(!item)return;
+    item.t.naoEncontrado=true;finQIdx++;finRenderWork();
+  };
+  window.fwPular=function(){finQIdx++;finRenderWork();};
+  window.fwNav=function(dir){const n=finQIdx+dir;if(n>=0&&n<=finQueue.length){finQIdx=n;finRenderWork();}};
+
+  // ── build review ──
+  function finBuildReview(){
+    finReview=[];
+    finTRows.forEach(t=>{
+      if(!t.temDesconto)return;
+      const fi=t.linkedFormIdx;
+      const f=fi!==null&&fi!==undefined?finFRows[fi]:null;
+      finReview.push({t,f,origem:f?'conciliado':'sem-forms',status:'pendente',obs:''});
+    });
+    finFRows.forEach(f=>{
+      if(f.linkedTrinkIdx===null)finReview.push({t:null,f,origem:'sem-trinks',status:'pendente',obs:''});
+    });
+    finReview.forEach((r,i)=>r._idx=i);
+  }
+
+  // ── show screens ──
+  function finShowWork(){
+    document.getElementById('fin-s-upload').style.display='none';
+    document.getElementById('fin-s-review').style.display='none';
+    document.getElementById('fin-s-work').style.display='flex';
+    finRenderWork();
+  }
+  function finShowReview(){
+    document.getElementById('fin-s-work').style.display='none';
+    document.getElementById('fin-s-upload').style.display='none';
+    document.getElementById('fin-s-review').style.display='block';
+    finRenderReview();
+  }
+  window.fwGoWork=function(){
+    document.getElementById('fin-s-review').style.display='none';
+    document.getElementById('fin-s-work').style.display='flex';
+  };
+
+  // ── render review ──
+  function finRenderReview(){
+    // dashboard
+    const total=finReview.length;
+    const pend=finReview.filter(r=>r.status==='pendente').length;
+    const ok=finReview.filter(r=>r.status==='ok').length;
+    const conc=finReview.filter(r=>r.origem==='conciliado').length;
+    const sf=finReview.filter(r=>r.origem==='sem-forms').length;
+    const st=finReview.filter(r=>r.origem==='sem-trinks').length;
+    document.getElementById('fin-dash').innerHTML=`
+      <div class="fin-dc"><div class="dn">${total}</div><div class="dl">Total</div></div>
+      <div class="fin-dc"><div class="dn" style="color:#856404">${pend}</div><div class="dl">🟡 Pendente</div></div>
+      <div class="fin-dc"><div class="dn" style="color:#2A6B3F">${ok}</div><div class="dl">🟢 OK</div></div>
+      <div class="fin-dc"><div class="dn" style="color:#4A2B7E">${conc}</div><div class="dl">Conciliados</div></div>
+      <div class="fin-dc"><div class="dn" style="color:#8B2A2A">${sf}</div><div class="dl">Sem Forms</div></div>
+      <div class="fin-dc"><div class="dn" style="color:#155724">${st}</div><div class="dl">Autor. não usadas</div></div>`;
+    // unidades
+    const uns=[...new Set(finReview.map(r=>(r.t&&r.t.unidade)||(r.f&&r.f.unidade)||'').filter(Boolean))];
+    const selU=document.getElementById('fin-rv-un');
+    selU.innerHTML='<option value="">Todas as unidades</option>'+uns.map(u=>`<option>${finEsc(u)}</option>`).join('');
+    finApplyRVFilters();
+  }
+  function finApplyRVFilters(){
+    const q=(document.getElementById('fin-rv-q').value||'').toLowerCase();
+    const st=document.getElementById('fin-rv-st').value;
+    const orig=document.getElementById('fin-rv-orig').value;
+    const un=document.getElementById('fin-rv-un').value.toLowerCase();
+    const filtered=finReview.filter(r=>{
+      const nome=finNorm((r.t&&r.t.nome)||(r.f&&r.f.nome)||'');
+      const tel=((r.f&&r.f.telefone)||'').replace(/\D/g,'');
+      const mot=finNorm((r.t&&r.t.motivo)||(r.f&&r.f.motivo)||'');
+      const uni=finNorm((r.t&&r.t.unidade)||(r.f&&r.f.unidade)||'');
+      const matchQ=!q||nome.includes(q)||tel.includes(q)||mot.includes(q)||uni.includes(q)||(r.obs||'').toLowerCase().includes(q);
+      return matchQ&&(!st||r.status===st)&&(!orig||r.origem===orig)&&(!un||uni.includes(un));
+    });
+    const origLabel={conciliado:'<span class="fin-op fin-op-c">Conciliado</span>','sem-forms':'<span class="fin-op fin-op-sf">Sem Forms</span>','sem-trinks':'<span class="fin-op fin-op-st">Autor. não usada</span>'};
+    const rows=filtered.map(r=>{
+      const t=r.t,f=r.f;
+      const spBtn=r.status==='ok'?`<button class="fin-sp fin-sp-ok" onclick="finToggleSt(${r._idx})">🟢 OK</button>`:`<button class="fin-sp fin-sp-pend" onclick="finToggleSt(${r._idx})">🟡 Pendente</button>`;
+      return`<tr>
+        <td>${spBtn}</td>
+        <td style="font-weight:600">${finEsc((t&&t.nome)||(f&&f.nome)||'—')}</td>
+        <td>${finEsc((f&&f.telefone)||'—')}</td>
+        <td>${finEsc((t&&t.unidade)||(f&&f.unidade)||'—')}</td>
+        <td style="font-size:11px">${finEsc((t&&t.motivo)||'—')}</td>
+        <td style="font-size:11px">${finEsc((f&&f.motivo)||'—')}</td>
+        <td>${finFmtBRL(t&&t.totalServ)}</td>
+        <td>${finFmtBRL(t&&t.descVal)}</td>
+        <td>${t?finFmtPct(t.pctReal):'—'}</td>
+        <td>${f&&f.pct!==null?finFmtPct(f.pct):'—'}</td>
+        <td style="font-size:11px">${finEsc((t&&t.fechou)||'—')}</td>
+        <td style="font-size:11px">${finEsc((f&&f.liberadoPor)||'—')}</td>
+        <td><span style="font-size:11px;color:var(--gray)">${finEsc(r.obs||'—')}</span> <button style="background:none;border:none;cursor:pointer;font-size:11px" onclick="finEditObs(${r._idx})">✏️</button></td>
+        <td>${origLabel[r.origem]||''}</td>
       </tr>`;
     }).join('');
-    cont.innerHTML = `<table style="border-radius:0;border:none;font-size:13px;min-width:1200px;">
-      <thead><tr>
-        <th>Status</th><th>Data</th><th>Cliente</th><th>Unidade</th>
-        <th>Cat. Trinks</th><th>Cat. Forms</th><th>Vl. Serviço</th><th>Vl. Desconto</th>
-        <th>% Trinks</th><th>% Forms</th><th>Liberou</th><th>Fechou</th><th>Observação</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+    document.getElementById('fin-rv-body').innerHTML=rows||`<tr><td colspan="14" style="text-align:center;padding:28px;color:var(--gray)">Nenhum registro encontrado</td></tr>`;
+    // update dashboard counts
+    const total=finReview.length;
+    const pend=finReview.filter(r=>r.status==='pendente').length;
+    const ok=finReview.filter(r=>r.status==='ok').length;
+    const conc=finReview.filter(r=>r.origem==='conciliado').length;
+    const sf=finReview.filter(r=>r.origem==='sem-forms').length;
+    const st2=finReview.filter(r=>r.origem==='sem-trinks').length;
+    document.getElementById('fin-dash').innerHTML=`
+      <div class="fin-dc"><div class="dn">${total}</div><div class="dl">Total</div></div>
+      <div class="fin-dc"><div class="dn" style="color:#856404">${pend}</div><div class="dl">🟡 Pendente</div></div>
+      <div class="fin-dc"><div class="dn" style="color:#2A6B3F">${ok}</div><div class="dl">🟢 OK</div></div>
+      <div class="fin-dc"><div class="dn" style="color:#4A2B7E">${conc}</div><div class="dl">Conciliados</div></div>
+      <div class="fin-dc"><div class="dn" style="color:#8B2A2A">${sf}</div><div class="dl">Sem Forms</div></div>
+      <div class="fin-dc"><div class="dn" style="color:#155724">${st2}</div><div class="dl">Autor. não usadas</div></div>`;
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // RENDER STATS
-  // ═══════════════════════════════════════════════════════════
-  function renderStats(res){
-    const total = res.length;
-    const conc = res.filter(r=>r.status==='conciliado').length;
-    const manual = res.filter(r=>r.status==='manual').length;
-    const nao = res.filter(r=>r.status==='nao-conciliado').length;
-    const pct = total ? Math.round((conc/total)*100) : 0;
-    document.getElementById('fin-stats').innerHTML = `
-      <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total analisado</div></div>
-      <div class="stat-card" style="border-top:3px solid #155724;"><div class="stat-num" style="color:#155724;">${conc}</div><div class="stat-label">✅ Conciliados</div></div>
-      <div class="stat-card" style="border-top:3px solid #8C6A2A;"><div class="stat-num" style="color:#8C6A2A;">${manual}</div><div class="stat-label">⚠️ Conf. Manual</div></div>
-      <div class="stat-card" style="border-top:3px solid #8B2A2A;"><div class="stat-num" style="color:#8B2A2A;">${nao}</div><div class="stat-label">❌ Não conciliados</div></div>
-      <div class="stat-card" style="border-top:3px solid var(--gold);"><div class="stat-num" style="color:var(--gold);">${pct}%</div><div class="stat-label">Taxa de conciliação</div></div>`;
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // PAINEL LATERAL
-  // ═══════════════════════════════════════════════════════════
-  function diffClass(c){ return c==='ok'?'diff-ok':c==='warn'?'diff-warn':'diff-err'; }
-  function fieldRow(label, v1, v2, diff){
-    return `<div class="panel-field">
-      <label>${label}</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <span class="val ${diffClass(diff)}">${escapeHTML(String(v1||'—'))}</span>
-        <span class="val ${diffClass(diff)}">${escapeHTML(String(v2||'—'))}</span>
-      </div>
-    </div>`;
-  }
-
-  window.finOpenPanel = function(id){
-    const r = resultados.find(x=>x.id===id);
-    if(!r) return;
-    panelIdx = id;
-    const t = r.tRow, f = r.fRow;
-    const dNome = classifyDiff(t&&t.nome, f&&f.nome, null);
-    const dUnit = classifyDiff(t&&t.unidade, f&&f.unidade, null);
-    const dMot  = classifyDiff(t&&t.motivo, f&&f.motivo, null);
-    const dPct  = classifyDiff(t&&t.pctReal, f&&f.pct, 1);
-    document.getElementById('fin-panel-body').innerHTML = `
-      <div style="margin-bottom:16px;">${statusBadge(r.status)}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:8px;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray);padding:6px 0;">Trinks</div>
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray);padding:6px 0;">Google Forms</div>
-      </div>
-      ${fieldRow('Cliente', t&&t.nome, f&&f.nome, dNome)}
-      ${fieldRow('Unidade', t&&t.unidade, f&&f.unidade, dUnit)}
-      ${fieldRow('Motivo', t&&t.motivo, f&&f.motivo, dMot)}
-      ${fieldRow('Percentual', t?(t.pctReal+'%'):'—', f&&f.pct!==null?(f.pct+'%'):'—', dPct)}
-      ${fieldRow('Vl. Desconto', t?('R$ '+t.descVal.toFixed(2)):'—', '—', 'ok')}
-      ${fieldRow('Data', t?fmtDate(t.data):'—', f?fmtDate(f.dataApp):'—', 'ok')}
-      ${fieldRow('Quem fechou / Liberou', t&&t.quemFechou, f&&f.liberadoPor, 'ok')}
-      <hr style="margin:16px 0;border:none;border-top:1px solid var(--line);">
-      <div class="field">
-        <label style="font-size:12px;font-weight:600;display:block;margin-bottom:6px;">Observação</label>
-        <textarea id="panel-obs-input" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;resize:vertical;min-height:70px;">${escapeHTML(r.obs)}</textarea>
-      </div>
-      ${r.candidates.length>1?`<div style="margin-top:12px;font-size:11px;color:var(--gray);">${r.candidates.length} candidatos encontrados (score: ${r.candidates.map(c=>(c.score*100).toFixed(0)+'%').join(', ')})</div>`:''}
-    `;
-    const panel = document.getElementById('fin-side-panel');
-    const overlay = document.getElementById('fin-overlay');
-    panel.style.display = 'flex';
-    overlay.style.display = 'block';
+  window.finToggleSt=function(idx){finReview[idx].status=finReview[idx].status==='ok'?'pendente':'ok';finApplyRVFilters();};
+  window.finEditObs=function(idx){
+    const sugs='OK\nNão lançado no Forms\nNão lançado no Trinks\nErro de classificação\nPercentual diferente\nCliente diferente\nUnidade diferente\nConferência manual';
+    const nova=prompt('Sugestões:\n'+sugs+'\n\nObservação atual:\n'+(finReview[idx].obs||'(vazia)'),finReview[idx].obs||'');
+    if(nova!==null){finReview[idx].obs=nova;finApplyRVFilters();}
   };
 
-  function closePanel(){
-    // Salva obs editada
-    const inp = document.getElementById('panel-obs-input');
-    if(inp && panelIdx !== null){
-      const r = resultados.find(x=>x.id===panelIdx);
-      if(r){ r.obs = inp.value; const el=document.getElementById('obs-text-'+panelIdx); if(el) el.textContent=r.obs; }
-    }
-    document.getElementById('fin-side-panel').style.display = 'none';
-    document.getElementById('fin-overlay').style.display = 'none';
-    panelIdx = null;
-  }
-
-  function setPanelStatus(status){
-    if(panelIdx===null) return;
-    const r = resultados.find(x=>x.id===panelIdx);
-    if(!r) return;
-    const inp = document.getElementById('panel-obs-input');
-    if(inp) r.obs = inp.value;
-    r.status = status;
-    closePanel();
-    renderTabela(filtrados.length ? filtrados : resultados);
-    renderStats(resultados);
-  }
-
-  window.finEditObs = function(id){
-    const r = resultados.find(x=>x.id===id);
-    if(!r) return;
-    const novaObs = prompt('Editar observação:', r.obs);
-    if(novaObs !== null){ r.obs = novaObs; const el=document.getElementById('obs-text-'+id); if(el) el.textContent=r.obs; }
-  };
-
-  // ═══════════════════════════════════════════════════════════
-  // UPLOAD & EVENTOS
-  // ═══════════════════════════════════════════════════════════
-  function setupUpload(dropId, inputId, statusId, onLoad){
-    const drop=document.getElementById(dropId), input=document.getElementById(inputId), status=document.getElementById(statusId);
-    if(!drop) return;
-    drop.addEventListener('click',()=>input.click());
-    input.addEventListener('change',()=>{ if(input.files[0]) handleFile(input.files[0]); });
-    drop.addEventListener('dragover',e=>{e.preventDefault();drop.style.borderColor='var(--gold)';});
-    drop.addEventListener('dragleave',()=>{drop.style.borderColor='var(--line)';});
-    drop.addEventListener('drop',e=>{e.preventDefault();drop.style.borderColor='var(--line)';if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);});
-    async function handleFile(file){
-      status.textContent='⏳ Lendo arquivo...';
-      try{
-        const dados=await parseArquivo(file);
-        onLoad(dados);
-        status.innerHTML=`<span style="color:#2A6A3A;">✓ ${dados.length} registros — ${escapeHTML(file.name)}</span>`;
-        drop.style.borderColor='#2A6A3A';
-        verificarPronto();
-      }catch(e){ status.innerHTML=`<span style="color:#8B2A2A;">✗ Erro: ${e.message}</span>`; }
-    }
-  }
-
-  function verificarPronto(){
-    document.getElementById('btn-cruzar').disabled = !(dadosForms && dadosTrinks);
-  }
-
-  function applyFilters(){
-    const q = (document.getElementById('fin-search').value||'').toLowerCase();
-    const st = document.getElementById('fin-filter-status').value;
-    const un = document.getElementById('fin-filter-unidade').value;
-    filtrados = resultados.filter(r=>{
-      const t=r.tRow, f=r.fRow;
-      const nome=(t&&t.nome||f&&f.nome||'').toLowerCase();
-      const fone=(t&&t.telefone||f&&f.telefone||'').replace(/\D/g,'');
-      const uni=(t&&t.unidade||f&&f.unidade||'').toLowerCase();
-      const matchQ = !q || nome.includes(q) || fone.includes(q) || uni.includes(q) || (r.obs||'').toLowerCase().includes(q);
-      const matchSt = !st || r.status===st;
-      const matchUn = !un || uni.includes(un.toLowerCase());
-      return matchQ && matchSt && matchUn;
-    });
-    renderTabela(filtrados);
-  }
-
-  document.addEventListener('DOMContentLoaded',()=>{
-    setupUpload('drop-forms','file-forms','forms-status', d=>{ dadosForms=d; });
-    setupUpload('drop-trinks','file-trinks','trinks-status', d=>{
-      dadosTrinks=d;
-      document.getElementById('trinks-unidade-wrap').style.display='block';
-    });
-
-    document.getElementById('btn-cruzar').addEventListener('click',()=>{
-      const unid = document.getElementById('trinks-unidade').value;
-      resultados = reconciliar(dadosForms, dadosTrinks, unid);
-      filtrados = [];
-      // Preencher filtro de unidades
-      const unids = [...new Set(resultados.map(r=>(r.tRow&&r.tRow.unidade)||(r.fRow&&r.fRow.unidade)||'').filter(Boolean))];
-      const sel = document.getElementById('fin-filter-unidade');
-      sel.innerHTML = '<option value="">Todas as unidades</option>' + unids.map(u=>`<option>${u}</option>`).join('');
-      renderStats(resultados);
-      renderTabela(resultados);
-      document.getElementById('fin-step-upload').style.display='none';
-      document.getElementById('fin-results').style.display='block';
-    });
-
-    document.getElementById('btn-nova-conciliacao').addEventListener('click',()=>{
-      dadosForms=null; dadosTrinks=null; resultados=[]; filtrados=[];
-      document.getElementById('fin-results').style.display='none';
-      document.getElementById('fin-step-upload').style.display='block';
-      document.getElementById('forms-status').textContent='';
-      document.getElementById('trinks-status').textContent='';
-      document.getElementById('trinks-unidade-wrap').style.display='none';
-      document.getElementById('drop-forms').style.borderColor='var(--line)';
-      document.getElementById('drop-trinks').style.borderColor='var(--line)';
-      document.getElementById('btn-cruzar').disabled=true;
-    });
-
-    document.getElementById('fin-search').addEventListener('input', applyFilters);
-    document.getElementById('fin-filter-status').addEventListener('change', applyFilters);
-    document.getElementById('fin-filter-unidade').addEventListener('change', applyFilters);
-
-    document.getElementById('fin-panel-close').addEventListener('click', closePanel);
-    document.getElementById('fin-overlay').addEventListener('click', closePanel);
-    document.getElementById('fin-panel-conciliado').addEventListener('click',()=>setPanelStatus('conciliado'));
-    document.getElementById('fin-panel-manual').addEventListener('click',()=>setPanelStatus('manual'));
-    document.getElementById('fin-panel-nao').addEventListener('click',()=>setPanelStatus('nao-conciliado'));
-
-    document.getElementById('btn-export-xlsx').addEventListener('click',()=>{
-      const lista = filtrados.length ? filtrados : resultados;
-      if(!lista.length){ toast('Nenhum dado para exportar','error'); return; }
-      const statusMap = {conciliado:'✅ Conciliado',manual:'⚠️ Conferência Manual','nao-conciliado':'❌ Não conciliado'};
-      const rows = lista.map(r=>({
-        'Status': statusMap[r.status]||r.status,
-        'Data Trinks': r.tRow?fmtDate(r.tRow.data):'—',
-        'Cliente': r.tRow?r.tRow.nome:(r.fRow?r.fRow.nome:'—'),
-        'Unidade': (r.tRow&&r.tRow.unidade)||(r.fRow&&r.fRow.unidade)||'—',
-        'Cat. Trinks': r.tRow?r.tRow.motivo:'—',
-        'Cat. Forms': r.fRow?r.fRow.motivo:'—',
-        'Vl. Serviço': r.tRow?r.tRow.totalServ:'—',
-        'Vl. Desconto': r.tRow?r.tRow.descVal:'—',
-        '% Trinks': r.tRow?r.tRow.pctReal+'%':'—',
-        '% Forms': r.fRow&&r.fRow.pct!==null?r.fRow.pct+'%':'—',
-        'Liberou': r.fRow?r.fRow.liberadoPor:'—',
-        'Fechou': r.tRow?r.tRow.quemFechou:'—',
-        'Observação': r.obs,
-      }));
-      const ws=XLSX.utils.json_to_sheet(rows);
-      ws['!cols']=[18,12,22,14,18,18,12,12,10,10,18,18,40].map(w=>({wch:w}));
-      const wb=XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb,ws,'Conciliação');
-      const hoje=new Date().toISOString().slice(0,10);
-      XLSX.writeFile(wb,`conciliacao-${hoje}.xlsx`);
-      toast('Excel exportado','success');
-    });
-
-    document.getElementById('btn-export-csv').addEventListener('click',()=>{
-      const lista = filtrados.length ? filtrados : resultados;
-      if(!lista.length){ toast('Nenhum dado para exportar','error'); return; }
-      const statusMap = {conciliado:'Conciliado',manual:'Conferencia Manual','nao-conciliado':'Nao conciliado'};
-      const header = ['Status','Data','Cliente','Unidade','Cat.Trinks','Cat.Forms','Vl.Servico','Vl.Desconto','% Trinks','% Forms','Liberou','Fechou','Observacao'];
-      const esc = v => '"'+String(v||'').replace(/"/g,'""')+'"';
-      const rows = lista.map(r=>[
-        statusMap[r.status]||r.status,
-        r.tRow?fmtDate(r.tRow.data):'',
-        r.tRow?r.tRow.nome:(r.fRow?r.fRow.nome:''),
-        (r.tRow&&r.tRow.unidade)||(r.fRow&&r.fRow.unidade)||'',
-        r.tRow?r.tRow.motivo:'',
-        r.fRow?r.fRow.motivo:'',
-        r.tRow?r.tRow.totalServ:'',
-        r.tRow?r.tRow.descVal:'',
-        r.tRow?r.tRow.pctReal+'%':'',
-        r.fRow&&r.fRow.pct!==null?r.fRow.pct+'%':'',
-        r.fRow?r.fRow.liberadoPor:'',
-        r.tRow?r.tRow.quemFechou:'',
-        r.obs
-      ].map(esc).join(','));
-      const csv = [header.map(esc).join(','), ...rows].join('\n');
-      const blob = new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href=url; a.download=`conciliacao-${new Date().toISOString().slice(0,10)}.csv`; a.click();
-      URL.revokeObjectURL(url);
-      toast('CSV exportado','success');
-    });
+  // ── filtros review ──
+  ['fin-rv-q','fin-rv-st','fin-rv-orig','fin-rv-un'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.addEventListener('input',finApplyRVFilters);el.addEventListener('change',finApplyRVFilters);}
   });
+
+  // ── export ──
+  function finBuildRows(){
+    const origL={conciliado:'Conciliado','sem-forms':'Sem correspondência Forms','sem-trinks':'Autorização não utilizada'};
+    return finReview.map(r=>({
+      'Status':r.status==='ok'?'🟢 OK':'🟡 Pendente','Origem':origL[r.origem]||r.origem,
+      'Cliente':(r.t&&r.t.nome)||(r.f&&r.f.nome)||'—','Telefone':(r.f&&r.f.telefone)||'—',
+      'Unidade':(r.t&&r.t.unidade)||(r.f&&r.f.unidade)||'—',
+      'Motivo Trinks':(r.t&&r.t.motivo)||'—','Motivo Forms':(r.f&&r.f.motivo)||'—',
+      'Vl. Total':r.t?r.t.totalServ:'—','Vl. Desconto':r.t?r.t.descVal:'—',
+      '% Calculado':r.t?r.t.pctReal+'%':'—','% Autorizado':r.f&&r.f.pct!==null?r.f.pct+'%':'—',
+      'Quem Fechou':(r.t&&r.t.fechou)||'—','Quem Liberou':(r.f&&r.f.liberadoPor)||'—',
+      'Observação':r.obs||'',
+    }));
+  }
+  window.finExportXLSX=function(){
+    const rows=finBuildRows();const ws=XLSX.utils.json_to_sheet(rows);
+    ws['!cols']=[10,18,22,14,14,20,20,12,12,10,12,16,16,30].map(w=>({wch:w}));
+    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Conciliação');
+    XLSX.writeFile(wb,`conciliacao-${new Date().toISOString().slice(0,10)}.xlsx`);toast('Excel exportado','success');
+  };
+  window.finExportCSV=function(){
+    const rows=finBuildRows();const esc2=v=>'"'+String(v||'').replace(/"/g,'""')+'"';
+    const header=Object.keys(rows[0]);
+    const lines=[header.map(esc2).join(','),...rows.map(r=>header.map(k=>esc2(r[k])).join(','))];
+    const blob=new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`conciliacao-${new Date().toISOString().slice(0,10)}.csv`;a.click();
+    toast('CSV exportado','success');
+  };
+
+  // ── reset ──
+  window.finReset=function(){
+    finTRows=[];finFRows=[];finQueue=[];finQIdx=0;finReview=[];
+    ['fin-st-t','fin-st-f'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='';});
+    ['fin-dz-t','fin-dz-f'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('loaded');});
+    document.getElementById('fin-unidade-row').style.display='none';
+    document.getElementById('fin-btn-iniciar').disabled=true;
+    document.getElementById('fin-s-work').style.display='none';
+    document.getElementById('fin-s-review').style.display='none';
+    document.getElementById('fin-s-upload').style.display='block';
+  };
+
+  // ── dropzones ──
+  function finSetupDrop(dzId,fiId,stId,onLoad){
+    const dz=document.getElementById(dzId),fi=document.getElementById(fiId),st=document.getElementById(stId);
+    if(!dz||!fi||!st)return;
+    dz.addEventListener('click',()=>fi.click());
+    fi.addEventListener('change',()=>{if(fi.files[0])handle(fi.files[0]);});
+    dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
+    dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+    dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');if(e.dataTransfer.files[0])handle(e.dataTransfer.files[0]);});
+    async function handle(file){
+      st.innerHTML='⏳ Lendo…';
+      try{const data=await finParse(file);onLoad(data);st.innerHTML=`<span style="color:#155724">✓ ${data.length} registros — ${finEsc(file.name)}</span>`;dz.classList.add('loaded');finCheckReady();}
+      catch(e){st.innerHTML=`<span style="color:#8B2A2A">✗ ${finEsc(e.message)}</span>`;}
+    }
+  }
+  function finCheckReady(){document.getElementById('fin-btn-iniciar').disabled=!(finTRows.length&&finFRows.length);}
+
+  finSetupDrop('fin-dz-t','fin-fi-t','fin-st-t',data=>{
+    const unid=document.getElementById('fin-unidade').value;
+    finTRows=data.map(r=>finMapT(r,unid)).filter(r=>r.nome);
+    document.getElementById('fin-unidade-row').style.display='block';
+    finCheckReady();
+  });
+  finSetupDrop('fin-dz-f','fin-fi-f','fin-st-f',data=>{
+    finFRows=data.map(finMapF).filter(r=>r.nome);finCheckReady();
+  });
+
+  document.getElementById('fin-unidade').addEventListener('change',function(){
+    const fi=document.getElementById('fin-fi-t');
+    if(fi.files[0]){finParse(fi.files[0]).then(data=>{finTRows=data.map(r=>finMapT(r,this.value)).filter(r=>r.nome);});}
+  });
+
+  document.getElementById('fin-btn-iniciar').addEventListener('click',()=>{
+    finBuildQueue();
+    if(!finQueue.length){toast('Nenhum desconto encontrado no Trinks.','warn');return;}
+    finShowWork();
+  });
+
+  // (compatibilidade: variáveis não mais usadas)
+  void 0;
+
+
 })();
 
 // ── INIT ─────────────────────────────────────────────────────

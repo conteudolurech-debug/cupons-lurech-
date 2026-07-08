@@ -1920,14 +1920,38 @@ F('btn-change-pwd').addEventListener('click', async () => {
     let inter=0;ba.forEach(g=>{if(bb.has(g))inter++;});
     return(2*inter)/((ba.size+bb.size)||1);
   }
+  function finDateScore(a,b){
+    if(!a||!b||a==='—'||b==='—')return null;
+    const sa=String(a).slice(0,10),sb=String(b).slice(0,10);
+    if(sa===sb)return 1;
+    // mesmo dia+mês (ano diferente)
+    if(sa.length===10&&sb.length===10&&sa.slice(5)===sb.slice(5))return 0.7;
+    return 0.1;
+  }
+  function finPctScore(a,b){
+    if(a===null||a===undefined||b===null||b===undefined)return null;
+    const na=parseFloat(String(a).replace(',','.')),nb=parseFloat(String(b).replace(',','.'));
+    if(isNaN(na)||isNaN(nb)||na===0||nb===0)return null;
+    const d=Math.abs(na-nb);
+    if(d<=1)return 1; if(d<=5)return 0.7; if(d<=10)return 0.4; return 0.1;
+  }
   function finScore(t,f){
     const sN=finNameScore(t.nome,f.nome);
     const tp=finNormP(t.telefone||''),fp=finNormP(f.telefone||'');
-    const sP=(tp&&fp)?(tp===fp?1:0.3):0.5;
-    const sU=(t.unidadeNorm&&f.unidadeNorm)?(t.unidadeNorm===f.unidadeNorm?1:0.1):0.5;
+    const hasT=!!(tp&&fp);
+    const sT=hasT?(tp===fp?1:tp.slice(-6)===fp.slice(-6)?0.6:0):null;
+    const hasU=!!(t.unidadeNorm&&f.unidadeNorm);
+    const sU=hasU?(t.unidadeNorm===f.unidadeNorm?1:0):null;
     const tm=finNorm(t.motivo),fm=finNorm(f.motivo);
-    const sM=(!tm||!fm)?0.5:(tm===fm?1:(tm.includes(fm)||fm.includes(tm))?0.75:0.2);
-    return sN*0.55+sP*0.13+sU*0.17+sM*0.15;
+    const hasM=!!(tm&&fm);
+    const sM=hasM?(tm===fm?1:(tm.includes(fm)||fm.includes(tm))?0.8:finNameScore(t.motivo,f.motivo)):null;
+    const sD=finDateScore(t.data,f.dataApp);
+    const sPct=finPctScore(t.pctReal,f.pct);
+    // Regra: mínimo 2 campos principais com correspondência real (>= 0.7)
+    const goodMain=[sN>=0.7, hasT&&sT>=0.7, hasU&&sU>=0.9, hasM&&sM>=0.7].filter(Boolean).length;
+    if(goodMain<2)return 0;
+    // Score ponderado (ausente = neutro 0.5)
+    return sN*0.45+(sT!==null?sT:0.5)*0.13+(sU!==null?sU:0.5)*0.17+(sM!==null?sM:0.5)*0.15+(sD!==null?sD:0.5)*0.06+(sPct!==null?sPct:0.5)*0.04;
   }
 
   // ── parse file ──
@@ -1944,8 +1968,9 @@ F('btn-change-pwd').addEventListener('click', async () => {
     finQueue=[];
     finTRows.forEach((t,ti)=>{
       if(!t.temDesconto)return;
-      const cands=finFRows.map((f,fi)=>({f,fi,score:finScore(t,f)})).filter(c=>c.score>=0.38&&c.f.linkedTrinkIdx===null).sort((a,b)=>b.score-a.score);
-      const st=cands.length===0?'none':cands.length===1?'found':(cands[0].score-(cands[1]?cands[1].score:0))>=0.12?'found':'multiple';
+      const cands=finFRows.map((f,fi)=>({f,fi,score:finScore(t,f)})).filter(c=>c.score>0&&c.f.linkedTrinkIdx===null).sort((a,b)=>b.score-a.score);
+      const gap=cands.length>=2?cands[0].score-cands[1].score:1;
+      const st=cands.length===0?'none':cands.length===1?'found':gap>=0.15?'found':'multiple';
       finQueue.push({ti,t,cands,candIdx:0,suggestType:st});
     });
     finQIdx=0;

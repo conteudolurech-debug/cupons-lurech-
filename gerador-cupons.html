@@ -626,8 +626,9 @@
             <div class="fin-dz-status" id="fin-st-f"></div>
           </div>
         </div>
-        <div style="text-align:center;">
+        <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;">
           <button id="fin-btn-mapear" class="btn btn-primary" style="padding:14px 44px;font-size:14px;" disabled>Mapear Colunas →</button>
+          <button id="fin-btn-altmap" class="btn" style="padding:9px 24px;font-size:12px;border:1px solid var(--line);background:white;display:none;" onclick="finGoAltMap()">⚙️ Alterar Mapeamento</button>
         </div>
       </div>
     </div>
@@ -2276,6 +2277,16 @@ F('btn-change-pwd').addEventListener('click', async () => {
   });
 
   document.getElementById('fin-btn-mapear').addEventListener('click',()=>finShowMap());
+
+  // mostrar "Alterar Mapeamento" se já existe mapeamento salvo
+  if(finLoadMap()){
+    const btn=document.getElementById('fin-btn-altmap');
+    if(btn)btn.style.display='inline-block';
+  }
+  window.finGoAltMap=function(){
+    // vai para a tela de mapeamento sem exigir upload (usa dados já carregados se houver)
+    finShowMap();
+  };
 
   // (compatibilidade: variáveis não mais usadas)
   void 0;

@@ -627,8 +627,69 @@
           </div>
         </div>
         <div style="text-align:center;">
-          <button id="fin-btn-iniciar" class="btn btn-primary" style="padding:14px 44px;font-size:14px;" disabled>🔍 Iniciar Conciliação</button>
+          <button id="fin-btn-mapear" class="btn btn-primary" style="padding:14px 44px;font-size:14px;" disabled>Mapear Colunas →</button>
         </div>
+      </div>
+    </div>
+
+    <!-- ── ETAPA 1.5: MAPEAMENTO ── -->
+    <div id="fin-s-map" style="display:none;">
+      <style>
+        .fm-panels{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px;}
+        .fm-row{margin-bottom:11px;}
+        .fm-row label{display:block;font-size:11px;font-weight:700;margin-bottom:4px;color:var(--ink);}
+        .fm-row label span{font-weight:400;color:var(--gray);}
+        .fm-sel{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-family:inherit;font-size:12px;background:white;cursor:pointer;}
+        .fm-sel:focus{outline:none;border-color:var(--gold);}
+        .fm-err{background:#FCE3E3;color:#8B2A2A;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none;}
+        .fm-prev-table{width:100%;border-collapse:collapse;font-size:12px;}
+        .fm-prev-table th{background:var(--bg);padding:7px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--gray);border-bottom:1px solid var(--line);}
+        .fm-prev-table td{padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;}
+        .fm-prev-table tr:last-child td{border-bottom:none;}
+      </style>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+        <button class="btn" onclick="finShowUpload()" style="font-size:12px;padding:7px 14px;">← Voltar</button>
+        <h2 style="margin:0;padding:0;border:none;">Mapeamento de Colunas</h2>
+      </div>
+      <p style="font-size:13px;color:var(--gray);margin-bottom:18px;">Indique qual coluna de cada planilha corresponde a cada campo. O sistema nunca assume pela posição.</p>
+      <div class="fm-panels">
+        <!-- FORMS -->
+        <div class="panel">
+          <h2>📋 Google Forms</h2>
+          <div class="fm-row"><label>Nome da Cliente *</label><select class="fm-sel" id="fm-f-nome" onchange="finUpdatePreview()"></select></div>
+          <div class="fm-row"><label>Telefone *</label><select class="fm-sel" id="fm-f-tel" onchange="finUpdatePreview()"></select></div>
+          <div class="fm-row"><label>Data da aplicação *</label><select class="fm-sel" id="fm-f-data" onchange="finUpdatePreview()"></select></div>
+          <div class="fm-row"><label>Motivo *</label><select class="fm-sel" id="fm-f-motivo" onchange="finUpdatePreview()"></select></div>
+          <div class="fm-row"><label>Percentual autorizado *</label><select class="fm-sel" id="fm-f-pct" onchange="finUpdatePreview()"></select></div>
+          <div class="fm-row"><label>Unidade *</label><select class="fm-sel" id="fm-f-unid" onchange="finUpdatePreview()"></select></div>
+          <div class="fm-row"><label>Liberado por *</label><select class="fm-sel" id="fm-f-lib" onchange="finUpdatePreview()"></select></div>
+          <div class="fm-row"><label>Carimbo de data/hora <span>(Opcional)</span></label><select class="fm-sel" id="fm-f-car" onchange="finUpdatePreview()"></select></div>
+          <div class="fm-row"><label>CPF <span>(Opcional)</span></label><select class="fm-sel" id="fm-f-cpf" onchange="finUpdatePreview()"></select></div>
+        </div>
+        <!-- TRINKS -->
+        <div class="panel">
+          <h2>📊 Trinks</h2>
+          <div class="fm-row"><label>Nome da Cliente *</label><select class="fm-sel" id="fm-t-nome" onchange="finUpdatePreview()"></select></div>
+          <div class="fm-row"><label>Data Atendimento *</label><select class="fm-sel" id="fm-t-data" onchange="finUpdatePreview()"></select></div>
+          <div class="fm-row"><label>Valor Total Serviço *</label><select class="fm-sel" id="fm-t-total" onchange="finUpdatePreview()"></select></div>
+          <div class="fm-row"><label>Valor do Desconto *</label><select class="fm-sel" id="fm-t-desc" onchange="finUpdatePreview()"></select></div>
+          <div class="fm-row"><label>Motivo do Desconto *</label><select class="fm-sel" id="fm-t-motivo" onchange="finUpdatePreview()"></select></div>
+          <div class="fm-row"><label>Quem Fechou *</label><select class="fm-sel" id="fm-t-fechou" onchange="finUpdatePreview()"></select></div>
+          <div class="fm-row"><label>Unidade *</label><select class="fm-sel" id="fm-t-unid" onchange="finUpdatePreview()"></select></div>
+          <div class="fm-row"><label>Percentual <span>(Opcional)</span></label><select class="fm-sel" id="fm-t-pct" onchange="finUpdatePreview()"></select></div>
+          <div class="fm-row"><label>Telefone <span>(Opcional)</span></label><select class="fm-sel" id="fm-t-tel" onchange="finUpdatePreview()"></select></div>
+        </div>
+      </div>
+      <!-- Preview -->
+      <div class="panel" style="margin-bottom:18px;">
+        <h2 style="margin-bottom:10px;">Pré-visualização <span style="font-size:11px;font-weight:400;color:var(--gray);">(primeiras 3 linhas com os campos mapeados)</span></h2>
+        <div id="fin-map-prev" style="overflow-x:auto;"></div>
+      </div>
+      <!-- Erro -->
+      <div class="fm-err" id="fin-map-err">⚠️ Campo obrigatório não mapeado.</div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button class="btn btn-primary" style="padding:13px 36px;font-size:14px;" onclick="finConfirmMap()">✓ Confirmar Mapeamento e Iniciar Conciliação</button>
+        <span style="font-size:12px;color:var(--gray);">O mapeamento será salvo automaticamente.</span>
       </div>
     </div>
 
@@ -1126,17 +1187,25 @@ let panelBg = '#E8DDD5';
 let panelDiamondColor = '#C8B8AE';
 
 function buildDiamondSVG(bg, stroke) {
-  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="72" height="84">'
-    + '<rect width="72" height="84" fill="' + bg + '"/>'
-    + '<g fill="none" stroke="' + stroke + '" stroke-width="1.4" stroke-linejoin="round">'
-    + '<polygon points="36,6 62,26 62,30 36,78 10,30 10,26"/>'
-    + '<line x1="10" y1="28" x2="62" y2="28"/>'
-    + '<line x1="36" y1="6" x2="36" y2="28"/>'
-    + '<line x1="23" y1="6" x2="10" y2="28"/>'
-    + '<line x1="49" y1="6" x2="62" y2="28"/>'
-    + '<line x1="10" y1="28" x2="36" y2="78"/>'
-    + '<line x1="62" y1="28" x2="36" y2="78"/>'
-    + '<line x1="23" y1="6" x2="49" y2="6"/>'
+  // Diamante coração geométrico: linhas retas, X em cada lóbulo
+  // Vértices: N=entalhe, LP=pico esq, LO=outer esq, B=ponta, RO=outer dir, RP=pico dir
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="92" height="92">'
+    + '<rect width="92" height="92" fill="' + bg + '"/>'
+    + '<g fill="none" stroke="' + stroke + '" stroke-width="1.3" stroke-linejoin="miter" stroke-linecap="round">'
+    // Contorno externo — todo linhas retas
+    + '<polygon points="46,28 24,7 5,46 46,86 87,46 68,7"/>'
+    // Cintura horizontal
+    + '<line x1="5"  y1="46" x2="87" y2="46"/>'
+    // Eixo central (entalhe → ponta)
+    + '<line x1="46" y1="28" x2="46" y2="86"/>'
+    // Pico esq → centro cintura
+    + '<line x1="24" y1="7"  x2="46" y2="46"/>'
+    // Pico dir → centro cintura
+    + '<line x1="68" y1="7"  x2="46" y2="46"/>'
+    // Entalhe → outer esq  (X no lóbulo esq)
+    + '<line x1="46" y1="28" x2="5"  y2="46"/>'
+    // Entalhe → outer dir  (X no lóbulo dir)
+    + '<line x1="46" y1="28" x2="87" y2="46"/>'
     + '</g></svg>';
   return 'data:image/svg+xml;base64,' + btoa(svg);
 }
@@ -1718,22 +1787,137 @@ F('btn-change-pwd').addEventListener('click', async () => {
   function finFmtPct(v){return v!==null&&v!==undefined?v+'%':'—';}
   function finEsc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
 
-  // ── find col ──
-  function finCol(row,...terms){const keys=Object.keys(row);return keys.find(k=>terms.some(t=>k.toLowerCase().includes(t.toLowerCase())))||'';}
+  // ── raw data & headers ──
+  let finRawT=[], finRawF=[], finHdrsT=[], finHdrsF=[], finMapping=null;
+  const FIN_LS = 'slr_fin_map_v2';
 
-  // ── map rows ──
-  function finMapT(row,unidade){
-    const totalServ=parseFloat(String(row[finCol(row,'total (r$) servi','total servi','total r$','valor total','total')]||'0').replace(/[^\d,.-]/g,'').replace(',','.'))||0;
-    const descBruto=parseFloat(String(row[finCol(row,'desconto','desc')]||'0').replace(/[^\d,.-]/g,'').replace(',','.'))||0;
+  const FIN_FIELDS_F=[
+    {key:'nome',   label:'Nome da Cliente',       selId:'fm-f-nome',   req:true},
+    {key:'tel',    label:'Telefone',              selId:'fm-f-tel',    req:true},
+    {key:'data',   label:'Data da aplicação',     selId:'fm-f-data',   req:true},
+    {key:'motivo', label:'Motivo',                selId:'fm-f-motivo', req:true},
+    {key:'pct',    label:'Percentual autorizado', selId:'fm-f-pct',    req:true},
+    {key:'unidade',label:'Unidade',               selId:'fm-f-unid',   req:true},
+    {key:'lib',    label:'Liberado por',          selId:'fm-f-lib',    req:true},
+    {key:'carimbo',label:'Carimbo',               selId:'fm-f-car',    req:false},
+    {key:'cpf',    label:'CPF',                   selId:'fm-f-cpf',    req:false},
+  ];
+  const FIN_FIELDS_T=[
+    {key:'nome',    label:'Nome da Cliente',      selId:'fm-t-nome',   req:true},
+    {key:'data',    label:'Data Atendimento',     selId:'fm-t-data',   req:true},
+    {key:'total',   label:'Valor Total Serviço',  selId:'fm-t-total',  req:true},
+    {key:'desc',    label:'Valor do Desconto',    selId:'fm-t-desc',   req:true},
+    {key:'motivo',  label:'Motivo do Desconto',   selId:'fm-t-motivo', req:true},
+    {key:'fechou',  label:'Quem Fechou',          selId:'fm-t-fechou', req:true},
+    {key:'unidade', label:'Unidade',              selId:'fm-t-unid',   req:true},
+    {key:'pct',     label:'Percentual',           selId:'fm-t-pct',    req:false},
+    {key:'tel',     label:'Telefone',             selId:'fm-t-tel',    req:false},
+  ];
+
+  function finSaveMap(m){try{localStorage.setItem(FIN_LS,JSON.stringify(m));}catch(e){}}
+  function finLoadMap(){try{return JSON.parse(localStorage.getItem(FIN_LS)||'null');}catch(e){return null;}}
+
+  // ── map rows (usando mapeamento explícito) ──
+  function finMapT(row, mapT, unidade){
+    const g=key=>{const c=mapT[key];return c?String(row[c]||'').trim():'';};
+    const totalServ=parseFloat(g('total').replace(/[^\d,.-]/g,'').replace(',','.'))||0;
+    const descBruto=parseFloat(g('desc').replace(/[^\d,.-]/g,'').replace(',','.'))||0;
     const descVal=Math.abs(descBruto);
     const pctReal=totalServ>0?Math.round((descVal/totalServ)*1000)/10:0;
-    const unidadeRaw=String(row[finCol(row,'unidade')]||'').trim()||unidade||'';
-    return{raw:row,nome:String(row[finCol(row,'nome do cliente','nome cliente','cliente')]||'').trim(),data:finDate(row[finCol(row,'data de atend','data atend','data')]||''),unidade:unidadeRaw,unidadeNorm:finNormU(unidadeRaw),fechou:String(row[finCol(row,'quem fechou','fechou a conta','atendente')]||'').trim(),motivo:String(row[finCol(row,'motivo desconto','motivo')]||'').trim(),totalServ,descVal,pctReal,temDesconto:descVal>0,linkedFormIdx:null,naoEncontrado:false};
+    const unidadeRaw=g('unidade')||unidade||'';
+    return{raw:row,nome:g('nome'),data:finDate(g('data')),unidade:unidadeRaw,unidadeNorm:finNormU(unidadeRaw),fechou:g('fechou'),motivo:g('motivo'),telefone:g('tel'),totalServ,descVal,pctReal,temDesconto:descVal>0,linkedFormIdx:null,naoEncontrado:false};
   }
-  function finMapF(row){
-    const unidadeRaw=String(row[finCol(row,'unidade')]||'').trim();
-    return{raw:row,nome:String(row[finCol(row,'nome da cliente','nome cliente','cliente')]||'').trim(),telefone:String(row[finCol(row,'telefone')]||'').trim(),dataApp:finDate(row[finCol(row,'data da aplica','data aplica','data do desconto','data')]||''),carimbo:String(row[finCol(row,'carimbo','timestamp','hora')]||'').slice(0,16),unidade:unidadeRaw,unidadeNorm:finNormU(unidadeRaw),motivo:String(row[finCol(row,'motivo')]||'').trim(),pct:finPct(row[finCol(row,'porcentagem','desconto oferec','% oferec','percent')]||''),liberadoPor:String(row[finCol(row,'liberado por','autorizado por','quem liberou','nome completo')]||'').trim(),linkedTrinkIdx:null};
+  function finMapF(row, mapF){
+    const g=key=>{const c=mapF[key];return c?String(row[c]||'').trim():'';};
+    const unidadeRaw=g('unidade');
+    return{raw:row,nome:g('nome'),telefone:g('tel'),dataApp:finDate(g('data')),carimbo:g('carimbo').slice(0,16),unidade:unidadeRaw,unidadeNorm:finNormU(unidadeRaw),motivo:g('motivo'),pct:finPct(g('pct')),liberadoPor:g('lib'),cpf:g('cpf'),linkedTrinkIdx:null};
   }
+
+  // ── populate mapping selects ──
+  function finPopulateSelects(){
+    function fillSel(selId, hdrs){
+      const el=document.getElementById(selId);if(!el)return;
+      el.innerHTML='<option value="">(Não mapeado / Não existe)</option>'+hdrs.map(h=>`<option value="${finEsc(h)}">${finEsc(h)}</option>`).join('');
+    }
+    FIN_FIELDS_F.forEach(f=>fillSel(f.selId, finHdrsF));
+    FIN_FIELDS_T.forEach(f=>fillSel(f.selId, finHdrsT));
+    // load saved mapping
+    const saved=finLoadMap();
+    if(saved){
+      if(saved.f) FIN_FIELDS_F.forEach(f=>{const el=document.getElementById(f.selId);if(el&&saved.f[f.key]){el.value=saved.f[f.key];if(!el.value)el.value='';}});
+      if(saved.t) FIN_FIELDS_T.forEach(f=>{const el=document.getElementById(f.selId);if(el&&saved.t[f.key]){el.value=saved.t[f.key];if(!el.value)el.value='';}});
+    } else {
+      // auto-sugestão por nome similar
+      function autoMatch(fields, hdrs){
+        fields.forEach(f=>{
+          const el=document.getElementById(f.selId);if(!el)return;
+          const kw=finNorm(f.label);
+          const match=hdrs.find(h=>finNorm(h).includes(kw.split(' ')[0])||kw.includes(finNorm(h).split(' ')[0]));
+          if(match)el.value=match;
+        });
+      }
+      autoMatch(FIN_FIELDS_F, finHdrsF);
+      autoMatch(FIN_FIELDS_T, finHdrsT);
+    }
+    finUpdatePreview();
+  }
+
+  // ── preview ──
+  window.finUpdatePreview=function(){
+    const mapF={},mapT={};
+    FIN_FIELDS_F.forEach(f=>{const el=document.getElementById(f.selId);mapF[f.key]=el?el.value:'';});
+    FIN_FIELDS_T.forEach(f=>{const el=document.getElementById(f.selId);mapT[f.key]=el?el.value:'';});
+    const previewCols=[
+      {label:'Nome (Forms)',   src:'f', key:'nome'},
+      {label:'Telefone',       src:'f', key:'tel'},
+      {label:'Motivo (Forms)', src:'f', key:'motivo'},
+      {label:'Nome (Trinks)',  src:'t', key:'nome'},
+      {label:'Data Trinks',    src:'t', key:'data'},
+      {label:'Motivo (Trinks)',src:'t', key:'motivo'},
+    ];
+    const rows3F=finRawF.slice(0,3);
+    const rows3T=finRawT.slice(0,3);
+    const maxRows=Math.max(rows3F.length,rows3T.length);
+    if(!maxRows){document.getElementById('fin-map-prev').innerHTML='<p style="color:var(--gray);font-size:12px;">Aguardando planilhas.</p>';return;}
+    let html=`<table class="fm-prev-table"><thead><tr>${previewCols.map(c=>`<th>${finEsc(c.label)}</th>`).join('')}</tr></thead><tbody>`;
+    for(let i=0;i<maxRows;i++){
+      const rf=rows3F[i]||{},rt=rows3T[i]||{};
+      html+='<tr>'+previewCols.map(c=>{
+        const map=c.src==='f'?mapF:mapT;
+        const col=map[c.key];
+        const val=col?String((c.src==='f'?rf:rt)[col]||''):'-';
+        return`<td title="${finEsc(val)}">${finEsc(val.slice(0,40))}</td>`;
+      }).join('')+'</tr>';
+    }
+    html+='</tbody></table>';
+    document.getElementById('fin-map-prev').innerHTML=html;
+  };
+
+  // ── confirm mapping ──
+  window.finConfirmMap=function(){
+    const mapF={},mapT={};
+    FIN_FIELDS_F.forEach(f=>{const el=document.getElementById(f.selId);mapF[f.key]=el?el.value:'';});
+    FIN_FIELDS_T.forEach(f=>{const el=document.getElementById(f.selId);mapT[f.key]=el?el.value:'';});
+    // validate required
+    const missingF=FIN_FIELDS_F.filter(f=>f.req&&!mapF[f.key]).map(f=>f.label);
+    const missingT=FIN_FIELDS_T.filter(f=>f.req&&!mapT[f.key]).map(f=>f.label);
+    const errEl=document.getElementById('fin-map-err');
+    if(missingF.length||missingT.length){
+      const all=[...missingF,...missingT];
+      errEl.textContent='⚠️ Campo obrigatório não mapeado: '+all.join(', ');
+      errEl.style.display='block';return;
+    }
+    errEl.style.display='none';
+    finMapping={f:mapF,t:mapT};
+    finSaveMap(finMapping);
+    // aplicar mapeamento nos dados raw
+    const unid=document.getElementById('fin-unidade').value;
+    finTRows=finRawT.map(r=>finMapT(r,mapT,unid)).filter(r=>r.nome);
+    finFRows=finRawF.map(r=>finMapF(r,mapF)).filter(r=>r.nome);
+    finBuildQueue();
+    if(!finQueue.length){toast('Nenhum desconto encontrado no Trinks.','warn');return;}
+    finShowWork();
+  };
 
   // ── similarity ──
   function finNameScore(a,b){
@@ -2010,16 +2194,36 @@ F('btn-change-pwd').addEventListener('click', async () => {
     toast('CSV exportado','success');
   };
 
-  // ── reset ──
-  window.finReset=function(){
-    finTRows=[];finFRows=[];finQueue=[];finQIdx=0;finReview=[];
-    ['fin-st-t','fin-st-f'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='';});
-    ['fin-dz-t','fin-dz-f'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('loaded');});
-    document.getElementById('fin-unidade-row').style.display='none';
-    document.getElementById('fin-btn-iniciar').disabled=true;
+  // ── navegação entre telas ──
+  window.finShowUpload=function(){
+    document.getElementById('fin-s-map').style.display='none';
     document.getElementById('fin-s-work').style.display='none';
     document.getElementById('fin-s-review').style.display='none';
     document.getElementById('fin-s-upload').style.display='block';
+  };
+  function finShowMap(){
+    document.getElementById('fin-s-upload').style.display='none';
+    document.getElementById('fin-s-work').style.display='none';
+    document.getElementById('fin-s-review').style.display='none';
+    document.getElementById('fin-s-map').style.display='block';
+    finPopulateSelects();
+  }
+
+  // ── reset ──
+  window.finReset=function(){
+    finTRows=[];finFRows=[];finRawT=[];finRawF=[];finHdrsT=[];finHdrsF=[];
+    finQueue=[];finQIdx=0;finReview=[];finMapping=null;
+    ['fin-st-t','fin-st-f'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='';});
+    ['fin-dz-t','fin-dz-f'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('loaded');});
+    document.getElementById('fin-unidade-row').style.display='none';
+    document.getElementById('fin-btn-mapear').disabled=true;
+    document.getElementById('fin-map-err').style.display='none';
+    document.getElementById('fin-s-work').style.display='none';
+    document.getElementById('fin-s-review').style.display='none';
+    document.getElementById('fin-s-map').style.display='none';
+    document.getElementById('fin-s-upload').style.display='block';
+    // reset file inputs
+    ['fin-fi-t','fin-fi-f'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   };
 
   // ── dropzones ──
@@ -2033,32 +2237,32 @@ F('btn-change-pwd').addEventListener('click', async () => {
     dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');if(e.dataTransfer.files[0])handle(e.dataTransfer.files[0]);});
     async function handle(file){
       st.innerHTML='⏳ Lendo…';
-      try{const data=await finParse(file);onLoad(data);st.innerHTML=`<span style="color:#155724">✓ ${data.length} registros — ${finEsc(file.name)}</span>`;dz.classList.add('loaded');finCheckReady();}
-      catch(e){st.innerHTML=`<span style="color:#8B2A2A">✗ ${finEsc(e.message)}</span>`;}
+      try{
+        const data=await finParse(file);
+        onLoad(data,file.name);
+        st.innerHTML=`<span style="color:#155724">✓ ${data.length} registros — ${finEsc(file.name)}</span>`;
+        dz.classList.add('loaded');
+        finCheckReady();
+      }catch(e){st.innerHTML=`<span style="color:#8B2A2A">✗ ${finEsc(e.message)}</span>`;}
     }
   }
-  function finCheckReady(){document.getElementById('fin-btn-iniciar').disabled=!(finTRows.length&&finFRows.length);}
+  function finCheckReady(){
+    document.getElementById('fin-btn-mapear').disabled=!(finRawT.length&&finRawF.length);
+  }
 
-  finSetupDrop('fin-dz-t','fin-fi-t','fin-st-t',data=>{
-    const unid=document.getElementById('fin-unidade').value;
-    finTRows=data.map(r=>finMapT(r,unid)).filter(r=>r.nome);
+  finSetupDrop('fin-dz-t','fin-fi-t','fin-st-t',(data)=>{
+    finRawT=data;
+    finHdrsT=data.length?Object.keys(data[0]):[];
     document.getElementById('fin-unidade-row').style.display='block';
     finCheckReady();
   });
-  finSetupDrop('fin-dz-f','fin-fi-f','fin-st-f',data=>{
-    finFRows=data.map(finMapF).filter(r=>r.nome);finCheckReady();
+  finSetupDrop('fin-dz-f','fin-fi-f','fin-st-f',(data)=>{
+    finRawF=data;
+    finHdrsF=data.length?Object.keys(data[0]):[];
+    finCheckReady();
   });
 
-  document.getElementById('fin-unidade').addEventListener('change',function(){
-    const fi=document.getElementById('fin-fi-t');
-    if(fi.files[0]){finParse(fi.files[0]).then(data=>{finTRows=data.map(r=>finMapT(r,this.value)).filter(r=>r.nome);});}
-  });
-
-  document.getElementById('fin-btn-iniciar').addEventListener('click',()=>{
-    finBuildQueue();
-    if(!finQueue.length){toast('Nenhum desconto encontrado no Trinks.','warn');return;}
-    finShowWork();
-  });
+  document.getElementById('fin-btn-mapear').addEventListener('click',()=>finShowMap());
 
   // (compatibilidade: variáveis não mais usadas)
   void 0;

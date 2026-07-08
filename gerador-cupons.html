@@ -1187,19 +1187,16 @@ let panelBg = '#E8DDD5';
 let panelDiamondColor = '#C8B8AE';
 
 function buildDiamondSVG(bg, stroke) {
-  // Diamante coração geométrico: linhas retas, X em cada lóbulo
-  // Vértices: N=entalhe, LP=pico esq, LO=outer esq, B=ponta, RO=outer dir, RP=pico dir
+  // Vértices: pico-esq(22,5), entalhe(46,40), pico-dir(70,5), outer-esq(3,52), outer-dir(89,52), ponta(46,87)
+  // Linhas internas: girdle, centro, pico-esq→centro-girdle, pico-dir→centro-girdle
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="92" height="92">'
     + '<rect width="92" height="92" fill="' + bg + '"/>'
-    + '<g fill="none" stroke="' + stroke + '" stroke-width="1.3" stroke-linejoin="miter" stroke-linecap="round">'
-    // Contorno externo — todo linhas retas
-    + '<polygon points="46,26 28,6 4,46 46,90 88,46 64,6"/>'
-    + '<line x1="4"  y1="46" x2="88" y2="46"/>'
-    + '<line x1="46" y1="26" x2="46" y2="90"/>'
-    + '<line x1="28" y1="6"  x2="46" y2="46"/>'
-    + '<line x1="64" y1="6"  x2="46" y2="46"/>'
-    + '<line x1="46" y1="26" x2="4"  y2="46"/>'
-    + '<line x1="46" y1="26" x2="88" y2="46"/>'
+    + '<g fill="none" stroke="' + stroke + '" stroke-width="1.3" stroke-linejoin="miter">'
+    + '<polygon points="22,5 46,40 70,5 89,52 46,87 3,52"/>'
+    + '<line x1="3"  y1="52" x2="89" y2="52"/>'
+    + '<line x1="46" y1="40" x2="46" y2="87"/>'
+    + '<line x1="22" y1="5"  x2="46" y2="52"/>'
+    + '<line x1="70" y1="5"  x2="46" y2="52"/>'
     + '</g></svg>';
   return 'data:image/svg+xml;base64,' + btoa(svg);
 }

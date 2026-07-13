@@ -766,6 +766,14 @@
           <div class="fw-fb"><div class="fl">Carimbo</div><div class="fv" id="fw-f-carimbo">—</div></div>
         </div>
       </div>
+      <!-- FIM DA ETAPA 1 -->
+      <div id="fw-end" style="display:none;position:absolute;inset:0;background:white;z-index:10;flex-direction:column;align-items:center;justify-content:center;gap:24px;text-align:center;padding:40px;">
+        <div style="font-size:52px;">✅</div>
+        <h2 style="font-size:22px;margin:0;">Todos os registros foram processados</h2>
+        <p style="color:var(--gray);font-size:14px;max-width:420px;margin:0;">A etapa de conciliação assistida está concluída. Clique abaixo para gerar a revisão final com todos os registros.</p>
+        <button class="btn btn-primary" style="padding:20px 56px;font-size:17px;font-weight:700;letter-spacing:.03em;" onclick="finFinalize()">FINALIZAR CONCILIAÇÃO</button>
+        <button class="btn" style="padding:10px 28px;font-size:13px;border:1px solid var(--line);" onclick="fwVoltarUltimo()">← Voltar ao último registro</button>
+      </div>
       <!-- FOOTER -->
       <div class="fw-footer">
         <div style="display:flex;gap:8px;align-items:center;">
@@ -785,8 +793,8 @@
     <div id="fin-s-review" style="display:none;">
       <div class="fin-rv-hdr">
         <h2 style="margin:0;padding:0;border:none;">Revisão Geral</h2>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button class="btn" style="font-size:12px;padding:7px 14px;" onclick="fwGoWork()">← Voltar à conciliação</button>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          <button class="btn" style="font-size:12px;padding:7px 14px;" onclick="finSaveReview()">💾 Salvar alterações</button>
           <button class="btn" style="font-size:12px;padding:7px 14px;" onclick="finExportXLSX()">↓ Excel</button>
           <button class="btn" style="font-size:12px;padding:7px 14px;" onclick="finExportCSV()">↓ CSV</button>
           <button class="btn" style="font-size:12px;padding:7px 14px;" onclick="window.print()">↓ PDF</button>
@@ -794,12 +802,25 @@
         </div>
       </div>
       <div class="fin-dash" id="fin-dash"></div>
-      <div class="fin-rv-toolbar">
-        <input type="search" id="fin-rv-q" placeholder="🔍 Buscar…">
+      <div class="fin-rv-toolbar" style="flex-wrap:wrap;gap:6px;">
+        <input type="search" id="fin-rv-q" placeholder="🔍 Buscar cliente, motivo…" style="min-width:180px;">
         <select id="fin-rv-st"><option value="">Todos os status</option><option value="pendente">🟡 Pendente</option><option value="ok">🟢 OK</option></select>
         <select id="fin-rv-orig"><option value="">Todas as origens</option><option value="conciliado">Conciliados</option><option value="sem-forms">Sem Forms</option><option value="sem-trinks">Autor. não usada</option></select>
         <select id="fin-rv-un"><option value="">Todas as unidades</option></select>
+        <select id="fin-rv-fechou"><option value="">Quem Fechou (todos)</option></select>
+        <select id="fin-rv-liberou"><option value="">Quem Liberou (todos)</option></select>
+        <input type="search" id="fin-rv-obs" placeholder="🔍 Filtrar observação…" style="min-width:160px;">
       </div>
+      <datalist id="fin-obs-sugs">
+        <option value="OK">
+        <option value="Não lançado no Forms">
+        <option value="Não lançado no Trinks">
+        <option value="Erro de classificação">
+        <option value="Percentual diferente">
+        <option value="Cliente diferente">
+        <option value="Unidade diferente">
+        <option value="Conferência manual">
+      </datalist>
       <div class="fin-rv-wrap">
         <table class="fin-rv-table">
           <thead><tr>
@@ -2043,7 +2064,11 @@ F('btn-change-pwd').addEventListener('click', async () => {
 
   // ── render work ──
   function finRenderWork(){
-    if(finQIdx>=finQueue.length){finBuildReview();finShowReview();return;}
+    if(finQIdx>=finQueue.length){
+      document.getElementById('fw-end').style.display='flex';
+      return;
+    }
+    document.getElementById('fw-end').style.display='none';
     const item=finQueue[finQIdx];
     const t=item.t;
     const f=item.cands[item.candIdx]?item.cands[item.candIdx].f:null;
@@ -2142,6 +2167,13 @@ F('btn-change-pwd').addEventListener('click', async () => {
     document.getElementById('fin-s-review').style.display='block';
     finRenderReview();
   }
+  window.finFinalize=function(){finBuildReview();finShowReview();};
+  window.fwVoltarUltimo=function(){
+    if(finQIdx>0)finQIdx--;
+    document.getElementById('fw-end').style.display='none';
+    finRenderWork();
+  };
+  window.finSaveReview=function(){toast('Alterações salvas!','success');};
   window.fwGoWork=function(){
     document.getElementById('fin-s-review').style.display='none';
     document.getElementById('fin-s-work').style.display='flex';
@@ -2149,68 +2181,45 @@ F('btn-change-pwd').addEventListener('click', async () => {
 
   // ── render review ──
   function finRenderReview(){
-    // dashboard
-    const total=finReview.length;
-    const pend=finReview.filter(r=>r.status==='pendente').length;
-    const ok=finReview.filter(r=>r.status==='ok').length;
-    const conc=finReview.filter(r=>r.origem==='conciliado').length;
-    const sf=finReview.filter(r=>r.origem==='sem-forms').length;
-    const st=finReview.filter(r=>r.origem==='sem-trinks').length;
-    document.getElementById('fin-dash').innerHTML=`
-      <div class="fin-dc"><div class="dn">${total}</div><div class="dl">Total</div></div>
-      <div class="fin-dc"><div class="dn" style="color:#856404">${pend}</div><div class="dl">🟡 Pendente</div></div>
-      <div class="fin-dc"><div class="dn" style="color:#2A6B3F">${ok}</div><div class="dl">🟢 OK</div></div>
-      <div class="fin-dc"><div class="dn" style="color:#4A2B7E">${conc}</div><div class="dl">Conciliados</div></div>
-      <div class="fin-dc"><div class="dn" style="color:#8B2A2A">${sf}</div><div class="dl">Sem Forms</div></div>
-      <div class="fin-dc"><div class="dn" style="color:#155724">${st}</div><div class="dl">Autor. não usadas</div></div>`;
-    // unidades
+    // popular selects de unidade, quem fechou, quem liberou
     const uns=[...new Set(finReview.map(r=>(r.t&&r.t.unidade)||(r.f&&r.f.unidade)||'').filter(Boolean))];
-    const selU=document.getElementById('fin-rv-un');
-    selU.innerHTML='<option value="">Todas as unidades</option>'+uns.map(u=>`<option>${finEsc(u)}</option>`).join('');
+    document.getElementById('fin-rv-un').innerHTML='<option value="">Todas as unidades</option>'+uns.map(u=>`<option>${finEsc(u)}</option>`).join('');
+    const fechous=[...new Set(finReview.map(r=>r.t&&r.t.fechou||'').filter(Boolean))];
+    document.getElementById('fin-rv-fechou').innerHTML='<option value="">Quem Fechou (todos)</option>'+fechous.map(v=>`<option>${finEsc(v)}</option>`).join('');
+    const liberους=[...new Set(finReview.map(r=>r.f&&r.f.liberadoPor||'').filter(Boolean))];
+    document.getElementById('fin-rv-liberou').innerHTML='<option value="">Quem Liberou (todos)</option>'+liberους.map(v=>`<option>${finEsc(v)}</option>`).join('');
     finApplyRVFilters();
   }
+
   function finApplyRVFilters(){
     const q=(document.getElementById('fin-rv-q').value||'').toLowerCase();
     const st=document.getElementById('fin-rv-st').value;
     const orig=document.getElementById('fin-rv-orig').value;
-    const un=document.getElementById('fin-rv-un').value.toLowerCase();
+    const un=(document.getElementById('fin-rv-un').value||'').toLowerCase();
+    const fechou=(document.getElementById('fin-rv-fechou').value||'').toLowerCase();
+    const liberou=(document.getElementById('fin-rv-liberou').value||'').toLowerCase();
+    const obsQ=(document.getElementById('fin-rv-obs').value||'').toLowerCase();
+
     const filtered=finReview.filter(r=>{
       const nome=finNorm((r.t&&r.t.nome)||(r.f&&r.f.nome)||'');
       const tel=((r.f&&r.f.telefone)||'').replace(/\D/g,'');
       const mot=finNorm((r.t&&r.t.motivo)||(r.f&&r.f.motivo)||'');
       const uni=finNorm((r.t&&r.t.unidade)||(r.f&&r.f.unidade)||'');
-      const matchQ=!q||nome.includes(q)||tel.includes(q)||mot.includes(q)||uni.includes(q)||(r.obs||'').toLowerCase().includes(q);
-      return matchQ&&(!st||r.status===st)&&(!orig||r.origem===orig)&&(!un||uni.includes(un));
+      const fec=finNorm((r.t&&r.t.fechou)||'');
+      const lib=finNorm((r.f&&r.f.liberadoPor)||'');
+      const obs=(r.obs||'').toLowerCase();
+      return (!q||nome.includes(q)||tel.includes(q)||mot.includes(q)||uni.includes(q))
+        &&(!st||r.status===st)
+        &&(!orig||r.origem===orig)
+        &&(!un||uni.includes(un))
+        &&(!fechou||fec.includes(fechou))
+        &&(!liberou||lib.includes(liberou))
+        &&(!obsQ||obs.includes(obsQ));
     });
-    const origLabel={conciliado:'<span class="fin-op fin-op-c">Conciliado</span>','sem-forms':'<span class="fin-op fin-op-sf">Sem Forms</span>','sem-trinks':'<span class="fin-op fin-op-st">Autor. não usada</span>'};
-    const rows=filtered.map(r=>{
-      const t=r.t,f=r.f;
-      const spBtn=r.status==='ok'?`<button class="fin-sp fin-sp-ok" onclick="finToggleSt(${r._idx})">🟢 OK</button>`:`<button class="fin-sp fin-sp-pend" onclick="finToggleSt(${r._idx})">🟡 Pendente</button>`;
-      return`<tr>
-        <td>${spBtn}</td>
-        <td style="font-weight:600">${finEsc((t&&t.nome)||(f&&f.nome)||'—')}</td>
-        <td>${finEsc((f&&f.telefone)||'—')}</td>
-        <td>${finEsc((t&&t.unidade)||(f&&f.unidade)||'—')}</td>
-        <td style="font-size:11px">${finEsc((t&&t.motivo)||'—')}</td>
-        <td style="font-size:11px">${finEsc((f&&f.motivo)||'—')}</td>
-        <td>${finFmtBRL(t&&t.totalServ)}</td>
-        <td>${finFmtBRL(t&&t.descVal)}</td>
-        <td>${t?finFmtPct(t.pctReal):'—'}</td>
-        <td>${f&&f.pct!==null?finFmtPct(f.pct):'—'}</td>
-        <td style="font-size:11px">${finEsc((t&&t.fechou)||'—')}</td>
-        <td style="font-size:11px">${finEsc((f&&f.liberadoPor)||'—')}</td>
-        <td><span style="font-size:11px;color:var(--gray)">${finEsc(r.obs||'—')}</span> <button style="background:none;border:none;cursor:pointer;font-size:11px" onclick="finEditObs(${r._idx})">✏️</button></td>
-        <td>${origLabel[r.origem]||''}</td>
-      </tr>`;
-    }).join('');
-    document.getElementById('fin-rv-body').innerHTML=rows||`<tr><td colspan="14" style="text-align:center;padding:28px;color:var(--gray)">Nenhum registro encontrado</td></tr>`;
-    // update dashboard counts
-    const total=finReview.length;
-    const pend=finReview.filter(r=>r.status==='pendente').length;
-    const ok=finReview.filter(r=>r.status==='ok').length;
-    const conc=finReview.filter(r=>r.origem==='conciliado').length;
-    const sf=finReview.filter(r=>r.origem==='sem-forms').length;
-    const st2=finReview.filter(r=>r.origem==='sem-trinks').length;
+
+    // dashboard
+    const total=finReview.length,pend=finReview.filter(r=>r.status==='pendente').length,ok=finReview.filter(r=>r.status==='ok').length;
+    const conc=finReview.filter(r=>r.origem==='conciliado').length,sf=finReview.filter(r=>r.origem==='sem-forms').length,st2=finReview.filter(r=>r.origem==='sem-trinks').length;
     document.getElementById('fin-dash').innerHTML=`
       <div class="fin-dc"><div class="dn">${total}</div><div class="dl">Total</div></div>
       <div class="fin-dc"><div class="dn" style="color:#856404">${pend}</div><div class="dl">🟡 Pendente</div></div>
@@ -2218,17 +2227,37 @@ F('btn-change-pwd').addEventListener('click', async () => {
       <div class="fin-dc"><div class="dn" style="color:#4A2B7E">${conc}</div><div class="dl">Conciliados</div></div>
       <div class="fin-dc"><div class="dn" style="color:#8B2A2A">${sf}</div><div class="dl">Sem Forms</div></div>
       <div class="fin-dc"><div class="dn" style="color:#155724">${st2}</div><div class="dl">Autor. não usadas</div></div>`;
+
+    const origLabel={conciliado:'<span class="fin-op fin-op-c">Conciliado</span>','sem-forms':'<span class="fin-op fin-op-sf">Sem Forms</span>','sem-trinks':'<span class="fin-op fin-op-st">Autor. não usada</span>'};
+    const rows=filtered.map(r=>{
+      const t=r.t,f=r.f;
+      const spBtn=r.status==='ok'
+        ?`<button class="fin-sp fin-sp-ok" onclick="finToggleSt(${r._idx})">🟢 OK</button>`
+        :`<button class="fin-sp fin-sp-pend" onclick="finToggleSt(${r._idx})">🟡 Pendente</button>`;
+      return`<tr>
+        <td>${spBtn}</td>
+        <td style="font-weight:600">${finEsc((t&&t.nome)||(f&&f.nome)||'')}</td>
+        <td>${finEsc((f&&f.telefone)||'')}</td>
+        <td>${finEsc((t&&t.unidade)||(f&&f.unidade)||'')}</td>
+        <td style="font-size:11px">${finEsc((t&&t.motivo)||'')}</td>
+        <td style="font-size:11px">${finEsc((f&&f.motivo)||'')}</td>
+        <td>${finFmtBRL(t&&t.totalServ)}</td>
+        <td>${finFmtBRL(t&&t.descVal)}</td>
+        <td>${t?finFmtPct(t.pctReal):''}</td>
+        <td>${f&&f.pct!==null?finFmtPct(f.pct):''}</td>
+        <td style="font-size:11px">${finEsc((t&&t.fechou)||'')}</td>
+        <td style="font-size:11px">${finEsc((f&&f.liberadoPor)||'')}</td>
+        <td><input type="text" list="fin-obs-sugs" value="${finEsc(r.obs||'')}" placeholder="Adicionar observação…" style="width:100%;border:none;background:transparent;font-size:11px;font-family:inherit;color:var(--ink);outline:none;min-width:160px;" onchange="finReview[${r._idx}].obs=this.value"></td>
+        <td>${origLabel[r.origem]||''}</td>
+      </tr>`;
+    }).join('');
+    document.getElementById('fin-rv-body').innerHTML=rows||`<tr><td colspan="14" style="text-align:center;padding:28px;color:var(--gray)">Nenhum registro encontrado</td></tr>`;
   }
 
   window.finToggleSt=function(idx){finReview[idx].status=finReview[idx].status==='ok'?'pendente':'ok';finApplyRVFilters();};
-  window.finEditObs=function(idx){
-    const sugs='OK\nNão lançado no Forms\nNão lançado no Trinks\nErro de classificação\nPercentual diferente\nCliente diferente\nUnidade diferente\nConferência manual';
-    const nova=prompt('Sugestões:\n'+sugs+'\n\nObservação atual:\n'+(finReview[idx].obs||'(vazia)'),finReview[idx].obs||'');
-    if(nova!==null){finReview[idx].obs=nova;finApplyRVFilters();}
-  };
 
   // ── filtros review ──
-  ['fin-rv-q','fin-rv-st','fin-rv-orig','fin-rv-un'].forEach(id=>{
+  ['fin-rv-q','fin-rv-st','fin-rv-orig','fin-rv-un','fin-rv-fechou','fin-rv-liberou','fin-rv-obs'].forEach(id=>{
     const el=document.getElementById(id);
     if(el){el.addEventListener('input',finApplyRVFilters);el.addEventListener('change',finApplyRVFilters);}
   });
